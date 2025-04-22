@@ -1,0 +1,91 @@
+// Estrutura completa do projeto PsySimAI (com rotas, controllers, testes, CI/CD, simulação de IA e seed corrigido)
+
+// prisma/schema.prisma corrigido
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  configs   Config[]
+  sessions  Session[]
+}
+
+model Config {
+  id           String     @id @default(uuid())
+  user         User       @relation(fields: [userId], references: [id])
+  userId       String
+  name         String
+  prompts      Prompt[]
+  createdAt    DateTime   @default(now())
+  sessions     Session[]  // Correção: campo de relação oposta
+}
+
+model Prompt {
+  id               String             @id @default(uuid())
+  config           Config             @relation(fields: [configId], references: [id])
+  configId         String
+  text             String
+  order            Int
+  skillCategory    SkillCategory     @relation(fields: [skillCategoryId], references: [id])
+  skillCategoryId  String
+  difficultyLevel  DifficultyLevel   @relation(fields: [difficultyLevelId], references: [id])
+  difficultyLevelId String
+  expectedResponses ExpectedResponse[]
+  messages         Message[]         // Correção: campo de relação oposta
+}
+
+model ExpectedResponse {
+  id        String  @id @default(uuid())
+  prompt    Prompt  @relation(fields: [promptId], references: [id])
+  promptId  String
+  text      String
+  notes     String?
+}
+
+model SkillCategory {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  prompts     Prompt[]
+}
+
+model DifficultyLevel {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  prompts     Prompt[]
+}
+
+model Session {
+  id        String    @id @default(uuid())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String
+  config    Config    @relation(fields: [configId], references: [id])
+  configId  String
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+  messages  Message[]
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  session    Session  @relation(fields: [sessionId], references: [id])
+  sessionId  String
+  sender     String
+  content    String
+  timestamp  DateTime @default(now())
+  prompt     Prompt?  @relation(fields: [promptId], references: [id])
+  promptId   String?
+  isValid    Boolean?
+  feedback   String?
+}
