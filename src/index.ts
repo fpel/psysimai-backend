@@ -11,6 +11,7 @@ import progressRoutes from './routes/progressRoutes';
 import promptRoutes from './routes/promptRoutes';
 import authRoutes from './routes/authRoutes';
 import { verifyToken } from './middleware/authMiddleware';
+import difficultyLevelRoutes from './routes/difficultyLevelRoutes';
 
 dotenv.config();
 const app = express();
@@ -26,6 +27,8 @@ app.use('/validate', verifyToken, validationRoutes);
 app.use('/config', verifyToken, configRoutes);
 app.use('/progress', verifyToken, progressRoutes);
 app.use('/prompts', verifyToken, promptRoutes);
+app.use('/difficulty-levels', verifyToken, difficultyLevelRoutes);
+
 
 if (process.env.NODE_ENV !== 'test') {
 	const PORT = process.env.PORT || 3000;

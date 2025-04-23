@@ -23,7 +23,8 @@ async function main() {
 	const level = await prisma.difficultyLevel.create({
 		data: {
 			name: 'Iniciante',
-			description: 'Começando a formular perguntas exploratórias'
+			description: 'Começando a formular perguntas exploratórias',
+			order: 1
 		}
 	})
 

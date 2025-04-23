@@ -62,6 +62,7 @@ model DifficultyLevel {
   id          String     @id @default(uuid())
   name        String
   description String
+  order       Int
   prompts     Prompt[]
   progress    Progress[]
 }
