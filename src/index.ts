@@ -5,7 +5,7 @@ import { PrismaClient } from '@prisma/client';
 import sessionRoutes from './routes/sessionRoutes';
 import messageRoutes from './routes/messageRoutes';
 import validationRoutes from './routes/validationRoutes';
-import configRoutes from './routes/configRoutes'
+import configRoutes from './routes/configRoutes';
 
 dotenv.config();
 const app = express();

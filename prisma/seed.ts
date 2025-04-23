@@ -1,19 +1,29 @@
-// prisma/seed.ts com dados iniciais reais de prompts e respostas esperadas
+// prisma/seed.ts ajustado: IA como paciente, terapeuta faz perguntas
 import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
+	// Limpeza da base antes de popular
+	await prisma.message.deleteMany()
+	await prisma.session.deleteMany()
+	await prisma.expectedResponse.deleteMany()
+	await prisma.prompt.deleteMany()
+	await prisma.config.deleteMany()
+	await prisma.user.deleteMany()
+	await prisma.skillCategory.deleteMany()
+	await prisma.difficultyLevel.deleteMany()
+
 	const skill = await prisma.skillCategory.create({
 		data: {
-			name: 'Escuta Ativa',
-			description: 'Habilidade de ouvir ativamente com empatia e atenção'
+			name: 'Formulação de Perguntas',
+			description: 'Habilidade de investigar e explorar com perguntas adequadas'
 		}
 	})
 
 	const level = await prisma.difficultyLevel.create({
 		data: {
 			name: 'Iniciante',
-			description: 'Para quem está começando a treinar escuta e acolhimento'
+			description: 'Começando a formular perguntas exploratórias'
 		}
 	})
 
@@ -30,14 +40,14 @@ async function main() {
 	const config = await prisma.config.create({
 		data: {
 			userId: user.id,
-			name: 'Treinamento Inicial: Escuta Ativa'
+			name: 'Paciente: Ansiedade Leve'
 		}
 	})
 
 	const prompt1 = await prisma.prompt.create({
 		data: {
 			configId: config.id,
-			text: 'Como você tem se sentido ultimamente?',
+			text: 'Tenho sentido um aperto no peito, principalmente à noite.',
 			order: 1,
 			skillCategoryId: skill.id,
 			difficultyLevelId: level.id
@@ -46,16 +56,16 @@ async function main() {
 
 	await prisma.expectedResponse.createMany({
 		data: [
-			{ promptId: prompt1.id, text: 'Tenho me sentido sobrecarregado nos últimos dias' },
-			{ promptId: prompt1.id, text: 'Estou ansioso e não sei por onde começar' },
-			{ promptId: prompt1.id, text: 'Acordar tem sido difícil pra mim' }
+			{ promptId: prompt1.id, text: 'Você tem notado algum padrão nesses episódios?' },
+			{ promptId: prompt1.id, text: 'Quando começou a perceber esse aperto?' },
+			{ promptId: prompt1.id, text: 'Esse aperto te lembra alguma situação específica?' }
 		]
 	})
 
 	const prompt2 = await prisma.prompt.create({
 		data: {
 			configId: config.id,
-			text: 'Você pode me contar mais sobre o que está dificultando seus dias?',
+			text: 'Às vezes, minha mente corre tão rápido que não consigo dormir.',
 			order: 2,
 			skillCategoryId: skill.id,
 			difficultyLevelId: level.id
@@ -64,13 +74,13 @@ async function main() {
 
 	await prisma.expectedResponse.createMany({
 		data: [
-			{ promptId: prompt2.id, text: 'Tenho muita pressão no trabalho e me sinto exausto' },
-			{ promptId: prompt2.id, text: 'Estou tendo conflitos com pessoas próximas' },
-			{ promptId: prompt2.id, text: 'Não estou conseguindo dormir bem' }
+			{ promptId: prompt2.id, text: 'Você poderia me dizer sobre o que geralmente pensa nessas horas?' },
+			{ promptId: prompt2.id, text: 'Isso acontece com frequência ou em momentos específicos?' },
+			{ promptId: prompt2.id, text: 'Já tentou algo para acalmar a mente nesses momentos?' }
 		]
 	})
 
-	console.log('Seed de prompts e respostas esperadas finalizado com sucesso!')
+	console.log('Seed atualizado com foco no terapeuta formulando perguntas.')
 }
 
 main().finally(async () => {
