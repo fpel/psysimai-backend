@@ -24,7 +24,7 @@ app.use('/auth', authRoutes);
 app.use('/sessions', verifyToken, sessionRoutes);
 app.use('/messages', verifyToken, messageRoutes);
 app.use('/validate', verifyToken, validationRoutes);
-app.use('/config', verifyToken, configRoutes);
+app.use('/configs', verifyToken, configRoutes);
 app.use('/progress', verifyToken, progressRoutes);
 app.use('/prompts', verifyToken, promptRoutes);
 app.use('/difficulty-levels', verifyToken, difficultyLevelRoutes);

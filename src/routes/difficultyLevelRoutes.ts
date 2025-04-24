@@ -1,3 +1,4 @@
+// src/routes/difficultyLevelRoutes.ts
 import express from 'express';
 import { getAllDifficultyLevels } from '../controllers/difficultyLevelController';
 
