@@ -26,45 +26,46 @@ export const getSessionMessages = async (req: Request, res: Response) => {
 };
 
 export const createSession = async (req: Request, res: Response) => {
-	const { userId, configId } = req.body;
+	// const { userId, configId } = req.body;
 
-	if (!userId || !configId) {
-		res.status(400).json({ message: 'userId ou configId ausente' });
-		return;
-	}
+	// if (!userId || !configId) {
+	// 	res.status(400).json({ message: 'userId ou configId ausente' });
+	// 	return;
+	// }
 
-	try {
-		const session = await prisma.session.create({
-			data: {
-				userId,
-				configId,
-				startedAt: new Date(),
-			},
-		});
+	// try {
+	// 	const session = await prisma.session.create({
+	// 		data: {
+	// 			userId,
+	// 			configId,
+	// 			difficultyLevelId: 'ID_DO_NIVEL_AQUI', // ← você precisa definir isso corretamente
+	// 			status: 'in_progress',
+	// 			startedAt: new Date(),
+	// 		},
+	// 	});
+	// 	const firstPrompt = await prisma.prompt.findFirst({
+	// 		where: { configId },
+	// 		orderBy: { order: 'asc' },
+	// 	});
 
-		const firstPrompt = await prisma.prompt.findFirst({
-			where: { configId },
-			orderBy: { order: 'asc' },
-		});
+	// 	if (firstPrompt) {
+	// 		await prisma.message.create({
+	// 			data: {
+	// 				sessionId: session.id,
+	// 				promptId: firstPrompt.id,
+	// 				sender: 'ia',
+	// 				content: firstPrompt.text,
+	// 				timestamp: new Date(),
+	// 			},
+	// 		});
+	// 	}
 
-		if (firstPrompt) {
-			await prisma.message.create({
-				data: {
-					sessionId: session.id,
-					promptId: firstPrompt.id,
-					sender: 'ia',
-					content: firstPrompt.text,
-					timestamp: new Date(),
-				},
-			});
-		}
-
-		res.status(201).json(session);
-	} catch (err) {
-		console.error('Erro ao criar sessão:', err);
-		res.status(500).json({ message: 'Erro ao criar sessão.' });
-		return;
-	}
+	// 	res.status(201).json(session);
+	// } catch (err) {
+	// 	console.error('Erro ao criar sessão:', err);
+	// 	res.status(500).json({ message: 'Erro ao criar sessão.' });
+	// 	return;
+	// }
 };
 
 export const validateResponse = async (req: Request, res: Response) => {
@@ -104,6 +105,36 @@ export const validateResponse = async (req: Request, res: Response) => {
 	} catch (err) {
 		console.error('Erro ao validar resposta:', err);
 		res.status(500).json({ message: 'Erro ao validar a resposta.' });
+		return;
+	}
+};
+
+export const getSessionHistory = async (req: Request, res: Response) => {
+	try {
+		const userId = req.user.id;
+
+		const sessions = await prisma.session.findMany({
+			where: { userId },
+			include: {
+				difficultyLevel: true,
+			},
+			orderBy: {
+				startedAt: 'desc',
+			},
+		});
+
+		const result = sessions.map(session => ({
+			id: session.id,
+			startedAt: session.startedAt,
+			level: session.difficultyLevel.name,
+			status: session.status || 'in_progress',
+		}));
+
+		res.status(200).json(result);
+		return;
+	} catch (error) {
+		console.error('Erro ao buscar histórico de sessões:', error);
+		res.status(500).json({ message: 'Erro ao buscar histórico de sessões' });
 		return;
 	}
 };

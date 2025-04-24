@@ -65,17 +65,21 @@ model DifficultyLevel {
   order       Int
   prompts     Prompt[]
   progress    Progress[]
+  sessions    Session[]
 }
 
 model Session {
-  id        String    @id @default(uuid())
-  user      User      @relation(fields: [userId], references: [id])
-  userId    String
-  config    Config    @relation(fields: [configId], references: [id])
-  configId  String
-  startedAt DateTime  @default(now())
-  endedAt   DateTime?
-  messages  Message[]
+  id                String          @id @default(uuid())
+  user              User            @relation(fields: [userId], references: [id])
+  userId            String
+  config            Config          @relation(fields: [configId], references: [id])
+  configId          String
+  difficultyLevel   DifficultyLevel @relation(fields: [difficultyLevelId], references: [id])
+  difficultyLevelId String
+  status            String
+  startedAt         DateTime        @default(now())
+  endedAt           DateTime?
+  messages          Message[]
 }
 
 model Message {

@@ -1,103 +1,103 @@
-// README.md atualizado com instruções de deploy e execução
+# PsySimAI
 
-# PsySimAI Backend
+PsySimAI é uma aplicação interativa que simula o treinamento de terapeutas em práticas de psicoterapia cognitivo-comportamental (TCC). A IA apresenta situações clínicas e avalia a resposta do terapeuta, oferecendo feedback imediato. O progresso é acompanhado por níveis de dificuldade e categorias de habilidade.
 
-Plataforma para prática deliberada em TCC com IA.
+## Tecnologias Utilizadas
+- Node.js + Express (backend)
+- TypeScript
+- Prisma ORM
+- PostgreSQL
+- React + Vite (frontend)
+- TailwindCSS
+- Docker + Docker Compose
+- JWT para autenticação
+- Jest + Supertest para testes automatizados
 
 ## Requisitos
 - Node.js 18+
-- Docker e Docker Compose
+- Docker + Docker Compose
 
----
+## Como rodar o projeto localmente
 
-## 🚀 Rodando localmente
-
+### 1. Clone o repositório
 ```bash
-# Instale dependências
-npm install
+git clone https://github.com/seu-usuario/psysimai.git
+cd psysimai
+```
 
-# Suba o banco de dados
-docker-compose up -d db
+### 2. Suba o banco de dados com Docker
+```bash
+docker-compose up -d
+```
 
-# Gere o client do Prisma
-npx prisma generate
+### 3. Configure o ambiente
+Crie um arquivo `.env` com base no `.env.example`:
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/psysimai
+JWT_SECRET=suasecret
+```
 
-# Rode as migrations
+### 4. Rode as migrations e o seed
+```bash
 npx prisma migrate dev --name init
+npx prisma db seed
+```
 
-# Popule o banco com dados fictícios
-npm run seed
-
-# Inicie o servidor local
+### 5. Rode o backend
+```bash
+cd psysimai-backend
+npm install
 npm run dev
 ```
 
-O backend estará disponível em:
-```
-http://localhost:3000
-```
-
----
-
-## 🚀 Fazendo o Deploy (ex: Railway, Render, Fly.io)
-
-### 1. Crie o banco de dados na plataforma de sua escolha
-- Obtenha a `DATABASE_URL` da instância do PostgreSQL
-
-### 2. Configure o repositório no GitHub (caso não esteja)
-- Suba o projeto para um repositório público ou privado
-
-### 3. Configure variáveis de ambiente
-Na plataforma de deploy, adicione:
-```
-DATABASE_URL=<sua_string_de_conexão_postgres>
-```
-
-### 4. Build e Deploy
-- Se estiver usando Docker, a plataforma detecta o `Dockerfile`
-- Se estiver usando Node.js direto, configure:
-  - Build: `npm run build`
-  - Start: `npm start`
-
----
-
-## ✅ Testes
-
+### 6. Rode o frontend
 ```bash
-# Execute os testes unitários
-npm test
+cd psysimai-frontend
+npm install
+npm run dev
 ```
 
----
-
-## 📂 Estrutura principal
-
-```
-prisma/               → schema.prisma e seed
-src/
-├── controllers/      → lógica das rotas
-├── routes/           → endpoints express
-├── tests/            → testes com Jest
-├── index.ts          → entry point
+## Executando os testes
+Crie um `.env.test` com URL de banco de testes e JWT de teste:
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/psysimai_test
+JWT_SECRET=testsecret
 ```
 
----
-
-## 📦 Scripts úteis
-
-```json
-"scripts": {
-  "dev": "ts-node-dev src/index.ts",
-  "build": "tsc",
-  "start": "node build/index.js",
-  "test": "jest",
-  "lint": "eslint .",
-  "prisma": "prisma generate",
-  "seed": "ts-node prisma/seed.ts"
-}
+Para rodar os testes:
+```bash
+npm run test
 ```
 
----
+## Estrutura de Pastas
+```
+psysimai/
+├── psysimai-backend/
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── routes/
+│   │   ├── prisma/
+│   │   └── tests/
+│   ├── prisma/
+│   │   └── schema.prisma
+│   └── .env
+├── psysimai-frontend/
+│   ├── src/pages/
+│   └── src/services/
+├── docker-compose.yml
+└── README.md
+```
 
-Tudo pronto para codar, testar e evoluir!
-Se quiser, siga para a criação do frontend ou integração com a OpenAI.
+## Funcionalidades implementadas
+- Login com autenticação JWT
+- Criação de sessões com prompts da IA
+- Avaliação da resposta do terapeuta com feedback
+- Progresso do terapeuta com desbloqueio de níveis
+- Painel de dashboard (em andamento)
+
+## Roadmap
+- [ ] Visualização de histórico de sessões
+- [ ] Exportação de resultados
+- [ ] Painel do administrador para editar prompts e respostas esperadas
+- [ ] Suporte a diferentes idiomas
+
