@@ -13,6 +13,7 @@ export const getPromptsByConfig = async (req: Request, res: Response) => {
 			select: {
 				id: true,
 				text: true,
+				skillCategoryId: true,
 				skillCategory: {
 					select: {
 						description: true
