@@ -1,4 +1,4 @@
-// prisma/seed.ts ajustado: IA como paciente, terapeuta faz perguntas
+// prisma/seed.ts
 import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
@@ -13,6 +13,7 @@ async function main() {
 	await prisma.skillCategory.deleteMany()
 	await prisma.difficultyLevel.deleteMany()
 
+	// Criação de categorias e níveis
 	const skill = await prisma.skillCategory.create({
 		data: {
 			name: 'Formulação de Perguntas',
@@ -28,6 +29,7 @@ async function main() {
 		}
 	})
 
+	// Criação do usuário padrão
 	const user = await prisma.user.upsert({
 		where: { email: 'terapeuta@psysimai.com' },
 		update: {},
@@ -38,20 +40,23 @@ async function main() {
 		}
 	})
 
+	// Criação de configuração vinculada a skillCategory e difficultyLevel
 	const config = await prisma.config.create({
 		data: {
 			userId: user.id,
-			name: 'Paciente: Ansiedade Leve'
+			name: 'Paciente: Ansiedade Leve',
+			skillCategoryId: skill.id,
+			difficultyLevelId: level.id,
+			createdAt: new Date()
 		}
 	})
 
+	// Prompts e respostas esperadas
 	const prompt1 = await prisma.prompt.create({
 		data: {
 			configId: config.id,
 			text: 'Tenho sentido um aperto no peito, principalmente à noite.',
-			order: 1,
-			skillCategoryId: skill.id,
-			difficultyLevelId: level.id
+			order: 1
 		}
 	})
 
@@ -67,9 +72,7 @@ async function main() {
 		data: {
 			configId: config.id,
 			text: 'Às vezes, minha mente corre tão rápido que não consigo dormir.',
-			order: 2,
-			skillCategoryId: skill.id,
-			difficultyLevelId: level.id
+			order: 2
 		}
 	})
 
@@ -84,6 +87,11 @@ async function main() {
 	console.log('Seed atualizado com foco no terapeuta formulando perguntas.')
 }
 
-main().finally(async () => {
-	await prisma.$disconnect()
-})
+main()
+	.catch((e) => {
+		console.error(e)
+		process.exit(1)
+	})
+	.finally(async () => {
+		await prisma.$disconnect()
+	})

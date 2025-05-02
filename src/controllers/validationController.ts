@@ -4,59 +4,106 @@ import { getChatCompletion } from '../services/openaiService';
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
-export const validateResponse = async (req: Request, res: Response) => {
-	const { promptId, therapistResponse } = req.body;
+//Essa funcao nao esta sendo usada
+// export const validateResponse = async (req: Request, res: Response) => {
+// 	const { promptId, therapistResponse } = req.body;
 
-	const expected = await prisma.expectedResponse.findMany({
-		where: { promptId },
-	});
+// 	const expected = await prisma.expectedResponse.findMany({
+// 		where: { promptId },
+// 	});
 
-	if (!therapistResponse) {
-		res.status(400).json({
-			isValid: false,
-			feedback: 'Resposta vazia ou inválida.'
-		});
-		return;
-	}
+// 	if (!therapistResponse) {
+// 		res.status(400).json({
+// 			isValid: false,
+// 			feedback: 'Resposta vazia ou inválida.'
+// 		});
+// 		return;
+// 	}
 
-	const expectedTexts = expected.map(e => e.text.toLowerCase());
-	const match = expectedTexts.some(text => therapistResponse.toLowerCase().includes(text));
+// 	const expectedTexts = expected.map(e => e.text.toLowerCase());
+// 	const match = expectedTexts.some(text => therapistResponse.toLowerCase().includes(text));
 
-	const feedback = match
-		? 'Resposta adequada. Muito bem!'
-		: 'A resposta não corresponde ao esperado. Tente novamente.';
+// 	const feedback = match
+// 		? 'Resposta adequada. Muito bem!'
+// 		: 'A resposta não corresponde ao esperado. Tente novamente.';
 
-	res.status(200).json({ isValid: match, feedback });
-	return;
-};
+// 	res.status(200).json({ isValid: match, feedback });
+// 	return;
+// };
 
 
 export const validateResponseAI = async (req: Request, res: Response) => {
-	const { therapistResponse, expectedBehavior } = req.body;
+	const { therapistResponse, sessionId } = req.body;
 
 	try {
-		const prompt = `Você é um avaliador de respostas de terapia cognitivo-comportamental.
 
-		Analise a resposta do terapeuta com base no comportamento esperado abaixo.
-		
-		Responda no seguinte formato:
-		
-		Correção: [texto explicativo se a resposta está correta ou o que poderia melhorar]
-		Nota: [número de 0 a 10, onde 10 é uma resposta perfeita]
-		
-		Resposta do terapeuta:
-		"${therapistResponse}"
-		
-		Comportamento esperado:
-		"${expectedBehavior}"
-		
-		Seja objetivo, gentil e profissional.`;
+		// 1. Busca a sessão pra extrair o promptId
+		const session = await prisma.session.findUnique({
+			where: { id: sessionId },
+			select: { promptId: true }
+		});
+
+		if (!session) {
+			res.status(404).json({
+				error: 'Sessão não encontrada para este sessionId.'
+			});
+			return;
+		}
+		const promptId = session.promptId;
+
+		// 2. Busca os comportamentos esperados
+		const expected = await prisma.expectedResponse.findMany({
+			where: { promptId }
+		});
+
+		if (expected.length === 0) {
+			res.status(404).json({
+				error: 'Nenhuma resposta esperada encontrada para este prompt.'
+			});
+			return;
+		}
+
+		// 3. Monta lista numerada de expected texts
+		const expectedList = expected
+			.map((e, i) => `${i + 1}. ${e.text}`)
+			.join('\n');
+
+		// 4. Constroi o prompt para a IA
+		const prompt = `
+			Você é um avaliador de respostas de terapia cognitivo-comportamental.
+			Analise a resposta do terapeuta abaixo e compare com os comportamentos esperados.
+
+			Resposta do terapeuta:
+			"${therapistResponse}"
+
+			Comportamentos esperados:
+			${expectedList}
+
+			Responda **apenas** com JSON puro, **sem** formatação Markdown ou blocos de código, assim:
+			{"isValid": boolean, "feedback": "texto breve, gentil e profissional"}
+
+			`;
 
 		console.log('Prompt enviado para IA:', prompt);
 
 		const aiFeedback = await getChatCompletion(prompt);
+		const ai = JSON.parse(aiFeedback);
 
-		res.status(200).json({ feedback: aiFeedback });
+		//Grava o historico da mensagem
+		await prisma.message.create({
+			data: {
+				sessionId: sessionId,
+				sender: 'therapist',
+				content: therapistResponse,
+				isValid: ai.isValid,
+				feedback: ai.feedback,
+				timestamp: new Date(),
+			},
+		});
+
+
+
+		res.status(200).json(ai);
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error: 'Erro ao validar com IA.' });

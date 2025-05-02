@@ -26,10 +26,10 @@ export const getSessionMessages = async (req: Request, res: Response) => {
 };
 
 export const createSession = async (req: Request, res: Response) => {
-	const { configId, difficultyLevelId, skillCategoryId } = req.body;
+	const { configId } = req.body;
 	const userId = req.user.id;
 
-	if (!configId || !difficultyLevelId || !skillCategoryId) {
+	if (!configId) {
 		res.status(400).json({ message: 'Campos obrigatórios ausentes' });
 		return;
 	}
@@ -38,8 +38,6 @@ export const createSession = async (req: Request, res: Response) => {
 		const prompts = await prisma.prompt.findMany({
 			where: {
 				configId,
-				difficultyLevelId,
-				skillCategoryId
 			},
 		});
 
@@ -53,8 +51,7 @@ export const createSession = async (req: Request, res: Response) => {
 		const session = await prisma.session.create({
 			data: {
 				userId,
-				configId,
-				difficultyLevelId,
+				promptId: promptAleatorio.id,
 				status: 'in_progress',
 				startedAt: new Date(),
 			},
@@ -63,7 +60,7 @@ export const createSession = async (req: Request, res: Response) => {
 		await prisma.message.create({
 			data: {
 				sessionId: session.id,
-				promptId: promptAleatorio.id,
+				// promptId: promptAleatorio.id,
 				sender: 'ia',
 				content: promptAleatorio.text,
 				timestamp: new Date(),
@@ -78,56 +75,12 @@ export const createSession = async (req: Request, res: Response) => {
 	}
 };
 
-export const validateResponse = async (req: Request, res: Response) => {
-	const { promptId, therapistResponse, sessionId } = req.body;
-
-	if (!promptId || !therapistResponse || !sessionId) {
-		res.status(400).json({ message: 'Dados ausentes para validação.' });
-		return;
-	}
-
-	try {
-		const expected = await prisma.expectedResponse.findMany({
-			where: { promptId },
-		});
-
-		const respostaNormalizada = therapistResponse.toLowerCase().trim();
-		const match = expected.find(er => respostaNormalizada.includes(er.text.toLowerCase()));
-
-		const isValid = Boolean(match);
-		const feedback = isValid
-			? 'Boa pergunta! Continue assim.'
-			: 'Essa pergunta pode ser reformulada. Tente explorar mais o que o paciente expressou.';
-
-		await prisma.message.create({
-			data: {
-				sessionId,
-				promptId,
-				sender: 'therapist',
-				content: therapistResponse,
-				isValid,
-				feedback,
-				timestamp: new Date(),
-			},
-		});
-
-		res.status(200).json({ isValid, feedback });
-	} catch (err) {
-		console.error('Erro ao validar resposta:', err);
-		res.status(500).json({ message: 'Erro ao validar a resposta.' });
-		return;
-	}
-};
-
 export const getSessionHistory = async (req: Request, res: Response) => {
 	try {
 		const userId = req.user.id;
 
 		const sessions = await prisma.session.findMany({
 			where: { userId },
-			include: {
-				difficultyLevel: true,
-			},
 			orderBy: {
 				startedAt: 'desc',
 			},
@@ -136,8 +89,6 @@ export const getSessionHistory = async (req: Request, res: Response) => {
 		const result = sessions.map(session => ({
 			id: session.id,
 			startedAt: session.startedAt,
-			difficultyLevelId: session.difficultyLevelId,
-			level: session.difficultyLevel.name,
 			status: session.status || 'in_progress',
 		}));
 

@@ -7,11 +7,9 @@ import sessionRoutes from './routes/sessionRoutes';
 import messageRoutes from './routes/messageRoutes';
 import validationRoutes from './routes/validationRoutes';
 import configRoutes from './routes/configRoutes';
-import progressRoutes from './routes/progressRoutes';
-import promptRoutes from './routes/promptRoutes';
 import authRoutes from './routes/authRoutes';
 import { verifyToken } from './middleware/authMiddleware';
-import difficultyLevelRoutes from './routes/difficultyLevelRoutes';
+
 
 dotenv.config();
 const app = express();
@@ -25,9 +23,7 @@ app.use('/sessions', verifyToken, sessionRoutes);
 app.use('/messages', verifyToken, messageRoutes);
 app.use('/validate', verifyToken, validationRoutes);
 app.use('/configs', verifyToken, configRoutes);
-app.use('/progress', verifyToken, progressRoutes);
-app.use('/prompts', verifyToken, promptRoutes);
-app.use('/difficulty-levels', verifyToken, difficultyLevelRoutes);
+
 
 
 if (process.env.NODE_ENV !== 'test') {

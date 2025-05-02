@@ -16,7 +16,6 @@ model User {
   password String
   configs  Config[]
   sessions Session[]
-  progress Progress[]
 }
 
 model Config {
@@ -25,8 +24,11 @@ model Config {
   userId    String
   name      String
   prompts   Prompt[]
+  skillCategory     SkillCategory      @relation(fields: [skillCategoryId], references: [id])
+  skillCategoryId   String
+  difficultyLevel   DifficultyLevel    @relation(fields: [difficultyLevelId], references: [id])
+  difficultyLevelId String
   createdAt DateTime  @default(now())
-  sessions  Session[] // Correção: campo de relação oposta
 }
 
 model Prompt {
@@ -35,12 +37,8 @@ model Prompt {
   configId          String
   text              String
   order             Int
-  skillCategory     SkillCategory      @relation(fields: [skillCategoryId], references: [id])
-  skillCategoryId   String
-  difficultyLevel   DifficultyLevel    @relation(fields: [difficultyLevelId], references: [id])
-  difficultyLevelId String
   expectedResponses ExpectedResponse[]
-  messages          Message[] // Correção: campo de relação oposta
+  sessions  		Session[] 
 }
 
 model ExpectedResponse {
@@ -55,7 +53,7 @@ model SkillCategory {
   id          String   @id @default(uuid())
   name        String
   description String
-  prompts     Prompt[]
+  configs  Config[]
 }
 
 model DifficultyLevel {
@@ -63,19 +61,15 @@ model DifficultyLevel {
   name        String
   description String
   order       Int
-  prompts     Prompt[]
-  progress    Progress[]
-  sessions    Session[]
+  configs  Config[]
 }
 
 model Session {
   id                String          @id @default(uuid())
   user              User            @relation(fields: [userId], references: [id])
   userId            String
-  config            Config          @relation(fields: [configId], references: [id])
-  configId          String
-  difficultyLevel   DifficultyLevel @relation(fields: [difficultyLevelId], references: [id])
-  difficultyLevelId String
+  prompt            Prompt          @relation(fields: [promptId], references: [id])
+  promptId          String
   status            String
   startedAt         DateTime        @default(now())
   endedAt           DateTime?
@@ -89,19 +83,7 @@ model Message {
   sender    String
   content   String
   timestamp DateTime @default(now())
-  prompt    Prompt?  @relation(fields: [promptId], references: [id])
-  promptId  String?
   isValid   Boolean?
   feedback  String?
 }
 
-model Progress {
-  id                String          @id @default(uuid())
-  user              User            @relation(fields: [userId], references: [id])
-  userId            String
-  difficultyLevel   DifficultyLevel @relation(fields: [difficultyLevelId], references: [id])
-  difficultyLevelId String
-  completedAt       DateTime        @default(now())
-
-  @@unique([userId, difficultyLevelId])
-}

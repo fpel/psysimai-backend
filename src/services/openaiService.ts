@@ -14,6 +14,16 @@ export async function getChatCompletion(prompt: string) {
 		],
 		temperature: 0.3, // deixar mais objetivo
 	});
+	
+	// 2) Loga o objeto inteiro pra inspecionar se choices existe
+    // console.log('[OpenAI] full response:', JSON.stringify(response, null, 2));
 
-	return response.choices[0].message.content;
+    // 3) Verifica se choices e message.content estão definidos
+    const content = response.choices?.[0]?.message?.content;
+    if (!content) {
+      throw new Error('OpenAI retornou sem `message.content`.');
+    }
+
+	return content;
+	// return response.choices[0].message.content;
 }
