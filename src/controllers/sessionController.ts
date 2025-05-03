@@ -84,12 +84,26 @@ export const getSessionHistory = async (req: Request, res: Response) => {
 			orderBy: {
 				startedAt: 'desc',
 			},
+			include: {
+				prompt: {
+					include: {
+						config: {
+							include: {
+								difficultyLevel: true,
+								skillCategory: true
+							},
+						}
+					}
+				},
+			}
 		});
 
 		const result = sessions.map(session => ({
 			id: session.id,
 			startedAt: session.startedAt,
 			status: session.status || 'in_progress',
+			level: session.prompt.config.difficultyLevel.name,
+			category: session.prompt.config.skillCategory.description,
 		}));
 
 		res.status(200).json(result);

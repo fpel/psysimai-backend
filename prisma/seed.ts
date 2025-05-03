@@ -8,6 +8,7 @@ async function main() {
 	await prisma.session.deleteMany()
 	await prisma.expectedResponse.deleteMany()
 	await prisma.prompt.deleteMany()
+	await prisma.userConfig.deleteMany()
 	await prisma.config.deleteMany()
 	await prisma.user.deleteMany()
 	await prisma.skillCategory.deleteMany()
@@ -43,10 +44,18 @@ async function main() {
 	// Criação de configuração vinculada a skillCategory e difficultyLevel
 	const config = await prisma.config.create({
 		data: {
-			userId: user.id,
 			name: 'Paciente: Ansiedade Leve',
 			skillCategoryId: skill.id,
 			difficultyLevelId: level.id,
+			createdAt: new Date()
+		}
+	})
+
+	// Criação do vinculo entre o usuário e a configuração
+	await prisma.userConfig.create({
+		data: {
+			userId: user.id,
+			configId: config.id,
 			createdAt: new Date()
 		}
 	})

@@ -9,25 +9,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model UserConfig {
+  user     User    @relation(fields: [userId], references: [id])
+  userId   String
+  config   Config  @relation(fields: [configId], references: [id])
+  configId String
+  createdAt DateTime  @default(now())
+  @@id([userId, configId])
+}
+
 model User {
   id       String     @id @default(uuid())
   name     String
   email    String     @unique
   password String
-  configs  Config[]
   sessions Session[]
+  // relação N-N para Config
+  userConfigs UserConfig[]
 }
 
 model Config {
   id        String    @id @default(uuid())
-  user      User      @relation(fields: [userId], references: [id])
-  userId    String
   name      String
   prompts   Prompt[]
   skillCategory     SkillCategory      @relation(fields: [skillCategoryId], references: [id])
   skillCategoryId   String
   difficultyLevel   DifficultyLevel    @relation(fields: [difficultyLevelId], references: [id])
   difficultyLevelId String
+  // relação N-N para User
+  userConfigs UserConfig[]
   createdAt DateTime  @default(now())
 }
 

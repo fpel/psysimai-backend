@@ -8,7 +8,11 @@ export const getConfigsByUser = async (req: Request, res: Response) => {
 		const userId = req.user.id;
 
 		const configs = await prisma.config.findMany({
-			where: { userId },
+			where: {
+				userConfigs: {
+					some: { userId }
+				}
+			},
 			orderBy: { createdAt: 'desc' },
 			include: {
 				skillCategory: true,
