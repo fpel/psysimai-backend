@@ -10,7 +10,7 @@
 		"test": "cross-env NODE_ENV=test dotenv -e .env.test -- npx jest --runInBand",
 		"lint": "eslint .",
 		"prisma": "prisma generate",
-		"seed": "ts-node prisma/seed.ts"
+		"seed": "dotenv -e .env -- ts-node prisma/seed.ts"
 	},
 	"dependencies": {
 		"@prisma/client": "^5.0.0",

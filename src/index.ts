@@ -18,11 +18,11 @@ const prisma = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 
-app.use('/auth', authRoutes);
-app.use('/sessions', verifyToken, sessionRoutes);
-app.use('/messages', verifyToken, messageRoutes);
-app.use('/validate', verifyToken, validationRoutes);
-app.use('/configs', verifyToken, configRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/sessions', verifyToken, sessionRoutes);
+app.use('/api/messages', verifyToken, messageRoutes);
+app.use('/api/validate', verifyToken, validationRoutes);
+app.use('/api/configs', verifyToken, configRoutes);
 
 
 
