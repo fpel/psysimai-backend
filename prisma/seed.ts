@@ -17,16 +17,26 @@ async function main() {
 	// Criação de categorias e níveis
 	const skill = await prisma.skillCategory.create({
 		data: {
-			name: 'Formulação de Perguntas',
-			description: 'Habilidade de investigar e explorar com perguntas adequadas'
+			name: 'Esse nome nao precisa',
+			description: 'Explicar a fundamentação do tratamento com terapia cognitivo-comportamental'
 		}
 	})
 
 	const level = await prisma.difficultyLevel.create({
 		data: {
 			name: 'Iniciante',
-			description: 'Começando a formular perguntas exploratórias',
+			description: 'Modo iniciante para o terapeuta',
 			order: 1
+		}
+	})
+
+	// Criação de configuração vinculada a skillCategory e difficultyLevel
+	const config = await prisma.config.create({
+		data: {
+			name: 'Exercício 1',
+			skillCategoryId: skill.id,
+			difficultyLevelId: level.id,
+			createdAt: new Date()
 		}
 	})
 
@@ -41,16 +51,6 @@ async function main() {
 		}
 	})
 
-	// Criação de configuração vinculada a skillCategory e difficultyLevel
-	const config = await prisma.config.create({
-		data: {
-			name: 'Paciente: Ansiedade Leve',
-			skillCategoryId: skill.id,
-			difficultyLevelId: level.id,
-			createdAt: new Date()
-		}
-	})
-
 	// Criação do vinculo entre o usuário e a configuração
 	await prisma.userConfig.create({
 		data: {
@@ -60,38 +60,46 @@ async function main() {
 		}
 	})
 
-	// Prompts e respostas esperadas
-	const prompt1 = await prisma.prompt.create({
-		data: {
-			configId: config.id,
-			text: 'Tenho sentido um aperto no peito, principalmente à noite.',
-			order: 1
-		}
-	})
+	// Dados de seed: array de prompts e respostas esperadas (1-1)
+	const seedData = [
+		{
+			promptText: 'Esse tipo de abordagem ajuda pessoas como eu?',
+			responseText: 'Sim, essa abordagem costuma ser bastante útil para pessoas como você. É uma abordagem bem pesquisada, com muito suporte científico quanto à sua eficácia para diferentes tipos de pessoas e problemas. Claro, cada pessoa é única e vivencia as coisas de maneira própria. Por isso, vamos adaptar o que fizermos para atender melhor às suas necessidades e preferências, sempre priorizando verificar o que parece estar funcionando — ou não — para você.'
+		},
+		{
+			promptText: 'Como a terapia funciona?',
+			responseText: 'Essa é uma ótima pergunta! Na terapia cognitivo-comportamental, vamos olhar para suas cognições — ou seja, seus pensamentos — e para seus comportamentos, para ver se consigo te ensinar algumas habilidades que ajudem a lidar com eles de forma mais eficaz em relação aos problemas que você quer trabalhar. Isso ajuda a responder sua dúvida?'
+		},
+		{
+			promptText: 'Nunca fiz terapia antes. Sobre o que a gente conversa aqui?',
+			responseText: 'Provavelmente vamos falar sobre várias coisas. No fim das contas, queremos focar no que for mais importante para você. Vamos definir metas para o tratamento; eu vou te ensinar habilidades para perceber e modificar pensamentos e comportamentos; você vai praticar isso em casa; no início de cada sessão vamos montar uma pauta com os temas mais relevantes para você naquele momento; e vamos acompanhar o progresso ao longo do tempo, ajustando o plano se não estivermos avançando como gostaríamos.'
+		},
+		{
+			promptText: 'Nunca fiz terapia antes. A gente só fala sobre meu passado ou criação?',
+			responseText: 'Entendo que a terapia ainda possa ser um pouco misteriosa para você. Tenho sim interesse na sua história. De forma geral, a TCC dá ênfase às experiências atuais e futuras, mas em alguns momentos pode ser importante olharmos para o passado para entender melhor o que está acontecendo no presente.'
+		},
+		// Adicione mais objetos aqui conforme necessário
+	]
 
-	await prisma.expectedResponse.createMany({
-		data: [
-			{ promptId: prompt1.id, text: 'Você tem notado algum padrão nesses episódios?' },
-			{ promptId: prompt1.id, text: 'Quando começou a perceber esse aperto?' },
-			{ promptId: prompt1.id, text: 'Esse aperto te lembra alguma situação específica?' }
-		]
-	})
+	// Loop para criar prompts e expectedResponses
+	for (let i = 0; i < seedData.length; i++) {
+		const { promptText, responseText } = seedData[i]
 
-	const prompt2 = await prisma.prompt.create({
-		data: {
-			configId: config.id,
-			text: 'Às vezes, minha mente corre tão rápido que não consigo dormir.',
-			order: 2
-		}
-	})
+		const prompt = await prisma.prompt.create({
+			data: {
+				configId: config.id,
+				text: promptText,
+				order: i + 1
+			}
+		})
 
-	await prisma.expectedResponse.createMany({
-		data: [
-			{ promptId: prompt2.id, text: 'Você poderia me dizer sobre o que geralmente pensa nessas horas?' },
-			{ promptId: prompt2.id, text: 'Isso acontece com frequência ou em momentos específicos?' },
-			{ promptId: prompt2.id, text: 'Já tentou algo para acalmar a mente nesses momentos?' }
-		]
-	})
+		await prisma.expectedResponse.create({
+			data: {
+				promptId: prompt.id,
+				text: responseText
+			}
+		})
+	}
 
 	console.log('Seed atualizado com foco no terapeuta formulando perguntas.')
 }
