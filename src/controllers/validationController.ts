@@ -92,7 +92,7 @@ export const validateResponseAI = async (req: Request, res: Response) => {
 
 			`;
 
-		// console.log('Prompt enviado para IA:', prompt);
+		console.log('Prompt enviado para IA:', prompt);
 
 		const aiFeedback = await getChatCompletion(prompt);
 		const ai = JSON.parse(aiFeedback);
