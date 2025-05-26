@@ -105,8 +105,6 @@ export const validateResponseAI = async (req: Request, res: Response) => {
 			},
 		});
 
-
-
 		res.status(200).json(ai);
 	} catch (error) {
 		console.error(error);
