@@ -70,9 +70,6 @@ export const validateResponseAI = async (req: Request, res: Response) => {
 
 		// 4. Constroi o prompt para a IA
 		const prompt = `
-			Você é um avaliador de respostas de terapia cognitivo-comportamental.
-			Analise a resposta do terapeuta abaixo e compare com os comportamentos esperados.
-
 			Resposta do terapeuta:
 			"${therapistResponse}"
 
@@ -80,22 +77,20 @@ export const validateResponseAI = async (req: Request, res: Response) => {
 			${expectedList}
 
 			Critérios de avaliação:
-			Validar a experiência do paciente.
-			Explicar a lógica de como a TCC pode ser utilizada para abordar as preocupações.
-			Promover esperança quanto ao uso eficaz da TCC.
-			Estabelecer expectativas adequadas sobre a natureza e o impacto da TCC.
+			- Validar a experiência do paciente.
+			- Explicar a lógica de como a TCC pode ser utilizada para abordar as preocupações.
+			- Promover esperança quanto ao uso eficaz da TCC.
+			- Estabelecer expectativas adequadas sobre a natureza e o impacto da TCC.
 
-			Forneça um feedback mais rigoroso e um percentual de adequação, só considerar a resposta adequada quando cumpriu todos os critérios acima.
-
-			Responda **apenas** com JSON puro, **sem** formatação Markdown ou blocos de código, assim:
-			{"isValid": boolean, "score": number, "feedback": "texto breve, gentil e profissional"}
-
-			`;
+			Forneça um feedback mais rigoroso e um percentual de adequação, só considerar a resposta adequada quando cumpriu todos os critérios acima.`;
 
 		console.log('Prompt enviado para IA:', prompt);
 
 		const aiFeedback = await getChatCompletion(prompt);
-		const ai = JSON.parse(aiFeedback);
+		const raw = aiFeedback.trim()
+			.replace(/^```json\s*/, '')
+			.replace(/```$/, '')
+		const ai = JSON.parse(raw);
 
 		//Grava o historico da mensagem
 		await prisma.message.create({
