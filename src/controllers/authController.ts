@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 dotenv.config();
 
+console.log('Initializing authController...');
 const prisma = new PrismaClient();
 
 export const login = async (req: Request, res: Response) => {

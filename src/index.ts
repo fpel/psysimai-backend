@@ -10,7 +10,7 @@ import configRoutes from './routes/configRoutes';
 import authRoutes from './routes/authRoutes';
 import { verifyToken } from './middleware/authMiddleware';
 
-
+console.log('Starting PsySimAI server...');
 dotenv.config();
 const app = express();
 const prisma = new PrismaClient();
