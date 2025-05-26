@@ -79,12 +79,20 @@ export const validateResponseAI = async (req: Request, res: Response) => {
 			Comportamentos esperados:
 			${expectedList}
 
+			Critérios de avaliação:
+			Validar a experiência do paciente.
+			Explicar a lógica de como a TCC pode ser utilizada para abordar as preocupações.
+			Promover esperança quanto ao uso eficaz da TCC.
+			Estabelecer expectativas adequadas sobre a natureza e o impacto da TCC.
+
+			Forneça um feedback mais rigoroso e um percentual de adequação, só considerar a resposta adequada quando cumpriu todos os critérios acima.
+
 			Responda **apenas** com JSON puro, **sem** formatação Markdown ou blocos de código, assim:
-			{"isValid": boolean, "feedback": "texto breve, gentil e profissional"}
+			{"isValid": boolean, "score": number, "feedback": "texto breve, gentil e profissional"}
 
 			`;
 
-		console.log('Prompt enviado para IA:', prompt);
+		// console.log('Prompt enviado para IA:', prompt);
 
 		const aiFeedback = await getChatCompletion(prompt);
 		const ai = JSON.parse(aiFeedback);
@@ -97,6 +105,7 @@ export const validateResponseAI = async (req: Request, res: Response) => {
 				content: therapistResponse,
 				isValid: ai.isValid,
 				feedback: ai.feedback,
+				score: ai.score,
 				timestamp: new Date(),
 			},
 		});
