@@ -24,7 +24,7 @@ app.use('/api/sessions', verifyToken, sessionRoutes);
 app.use('/api/messages', verifyToken, messageRoutes);
 app.use('/api/validate', verifyToken, validationRoutes);
 app.use('/api/configs', verifyToken, configRoutes);
-app.use('/configuracao', configuracaoRoutes);
+app.use('/api/configuracao', verifyToken, configuracaoRoutes);
 
 
 

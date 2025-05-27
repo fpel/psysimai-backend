@@ -144,3 +144,51 @@ export const updateSessionStatus = async (req: Request, res: Response) => {
 	}
 };
 
+export const repeatSession = async (req: Request, res: Response) => {
+	const { sessionId } = req.params;
+	const userId = req.user.id;
+
+	if (!sessionId) {
+		res.status(400).json({ message: 'sessionId ausente' });
+		return;
+	}
+
+	try {
+		const originalSession = await prisma.session.findUnique({
+			where: { id: sessionId },
+			include: {
+				prompt: true,
+			}
+		});
+
+		if (!originalSession) {
+			res.status(404).json({ message: 'Sessão original não encontrada.' });
+			return;
+		}
+
+		const promptId = originalSession.prompt.id;
+
+		const newSession = await prisma.session.create({
+			data: {
+				userId,
+				promptId,
+				status: 'in_progress',
+				startedAt: new Date(),
+			},
+		});
+
+		await prisma.message.create({
+			data: {
+				sessionId: newSession.id,
+				sender: 'ia',
+				content: originalSession.prompt.text,
+				timestamp: new Date(),
+			},
+		});
+
+		res.status(201).json(newSession);
+	} catch (error) {
+		console.error('Erro ao repetir sessão:', error);
+		res.status(500).json({ message: 'Erro ao repetir sessão.' });
+	}
+};

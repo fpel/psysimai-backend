@@ -68,21 +68,30 @@ export const validateResponseAI = async (req: Request, res: Response) => {
 			.map((e, i) => `${i + 1}. ${e.text}`)
 			.join('\n');
 
-		// 4. Constroi o prompt para a IA
-		const prompt = `
-			Resposta do terapeuta:
-			"${therapistResponse}"
+		// 4. Busca critérios e feedback da configuração
+		const configuracao = await prisma.configuracao.findFirst();
+		const criteriosAvaliacao = configuracao?.criteriosAvaliacao || `Critérios de avaliação:\n- Validar a experiência do paciente.\n- Explicar a lógica de como a TCC pode ser utilizada para abordar as preocupações.\n- Promover esperança quanto ao uso eficaz da TCC.\n- Estabelecer expectativas adequadas sobre a natureza e o impacto da TCC.`;
+		const feedbackInstrucao = configuracao?.feedback || 'Forneça um feedback mais rigoroso e um percentual de adequação, só considerar a resposta adequada quando cumpriu todos os critérios acima.';
 
-			Comportamentos esperados:
-			${expectedList}
+		// ESSE PROMPT FUNCIONA - TROQUEI PARA BUSCAR NA BASE DE DADOS
+		// const prompt = `
+		// 	Resposta do terapeuta:
+		// 	"${therapistResponse}"
 
-			Critérios de avaliação:
-			- Validar a experiência do paciente.
-			- Explicar a lógica de como a TCC pode ser utilizada para abordar as preocupações.
-			- Promover esperança quanto ao uso eficaz da TCC.
-			- Estabelecer expectativas adequadas sobre a natureza e o impacto da TCC.
+		// 	Comportamentos esperados:
+		// 	${expectedList}
 
-			Forneça um feedback mais rigoroso e um percentual de adequação, só considerar a resposta adequada quando cumpriu todos os critérios acima.`;
+		// 	Critérios de avaliação:
+		// 	- Validar a experiência do paciente.
+		// 	- Explicar a lógica de como a TCC pode ser utilizada para abordar as preocupações.
+		// 	- Promover esperança quanto ao uso eficaz da TCC.
+		// 	- Estabelecer expectativas adequadas sobre a natureza e o impacto da TCC.
+
+		// 	Forneça um feedback mais rigoroso e um percentual de adequação, só considerar a resposta adequada quando cumpriu todos os critérios acima.`;
+
+
+		// 5. Constroi o prompt para a IA
+		const prompt = `\n\tResposta do terapeuta:\n\t"${therapistResponse}"\n\n\tComportamentos esperados:\n\t${expectedList}\n\n\t${criteriosAvaliacao}\n\n\t${feedbackInstrucao}`;
 
 		console.log('Prompt enviado para IA:', prompt);
 
