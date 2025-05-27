@@ -98,3 +98,11 @@ model Message {
   score     Int? @default(0)
 }
 
+model Configuracao {
+  id                Int    @id @default(autoincrement())
+  criteriosAvaliacao String
+  feedback           String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+

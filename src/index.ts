@@ -8,6 +8,7 @@ import messageRoutes from './routes/messageRoutes';
 import validationRoutes from './routes/validationRoutes';
 import configRoutes from './routes/configRoutes';
 import authRoutes from './routes/authRoutes';
+import configuracaoRoutes from './routes/configuracaoRoutes';
 import { verifyToken } from './middleware/authMiddleware';
 
 console.log('Starting PsySimAI server...');
@@ -23,6 +24,7 @@ app.use('/api/sessions', verifyToken, sessionRoutes);
 app.use('/api/messages', verifyToken, messageRoutes);
 app.use('/api/validate', verifyToken, validationRoutes);
 app.use('/api/configs', verifyToken, configRoutes);
+app.use('/configuracao', configuracaoRoutes);
 
 
 
