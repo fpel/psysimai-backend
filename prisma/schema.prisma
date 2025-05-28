@@ -92,6 +92,7 @@ model Message {
   sessionId String
   sender    String
   content   String
+  transcription String?
   timestamp DateTime @default(now())
   isValid   Boolean?
   feedback  String?

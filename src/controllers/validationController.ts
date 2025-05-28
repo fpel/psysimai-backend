@@ -1,7 +1,9 @@
 // src/controllers/validationController.ts
 import { Request, Response } from 'express';
-import { getChatCompletion } from '../services/openaiService';
+import { getChatCompletion, transcribeAudio, generateAudioFeedback } from '../services/openaiService';
 import { PrismaClient } from '@prisma/client';
+import fs from 'fs/promises';
+
 const prisma = new PrismaClient();
 
 //Essa funcao nao esta sendo usada
@@ -120,3 +122,78 @@ export const validateResponseAI = async (req: Request, res: Response) => {
 		res.status(500).json({ error: 'Erro ao validar com IA.' });
 	}
 };
+
+export const validateAudioResponse = async (req: Request, res: Response) => {
+	const file = (req as any).file as Express.Multer.File;
+	const { sessionId } = req.body;
+
+	if (!file || !sessionId) {
+		res.status(400).json({ message: 'Áudio ou sessionId ausente.' });
+		return;
+	}
+
+	try {
+		const therapistResponse = await transcribeAudio(file.path);
+
+		const session = await prisma.session.findUnique({
+			where: { id: sessionId },
+			select: { promptId: true },
+		});
+
+		if (!session) {
+			res.status(404).json({ error: 'Sessão não encontrada.' });
+			return;
+		}
+
+		const expected = await prisma.expectedResponse.findMany({
+			where: { promptId: session.promptId },
+		});
+
+		if (expected.length === 0) {
+			res.status(404).json({ error: 'Nenhuma resposta esperada para este prompt.' });
+			return;
+		}
+
+		const expectedList = expected.map((e, i) => `${i + 1}. ${e.text}`).join('\n');
+
+		const config = await prisma.configuracao.findFirst();
+		const criteriosAvaliacao = config?.criteriosAvaliacao || 'Critérios padrões.';
+		const feedbackInstrucao = config?.feedback || 'Forneça um feedback completo.';
+
+		const prompt = `\n\tResposta do terapeuta:\n\t"${therapistResponse}"\n\n\tComportamentos esperados:\n\t${expectedList}\n\n\t${criteriosAvaliacao}\n\n\t${feedbackInstrucao}`;
+
+		const aiResponse = await getChatCompletion(prompt);
+		const ai = JSON.parse(aiResponse);
+
+		await prisma.message.create({
+			data: {
+				sessionId,
+				sender: 'therapist',
+				content: '[Resposta em áudio]',
+				transcription: therapistResponse,
+				isValid: ai.isValid,
+				feedback: ai.feedback,
+				score: ai.score,
+				timestamp: new Date(),
+			},
+		});
+
+		const audioBuffer = await generateAudioFeedback(ai.feedback);
+		
+		await fs.unlink(file.path);
+
+		res.status(200).json({
+			isValid: ai.isValid,
+			score: ai.score,
+			feedback: ai.feedback,
+			transcription: therapistResponse,
+			audioFeedback: audioBuffer.toString('base64'),
+		});
+		return;
+	} catch (error) {
+		console.error('Erro ao validar áudio:', error);
+		res.status(500).json({ message: 'Erro ao processar áudio.' });
+		return;
+	}
+};
+

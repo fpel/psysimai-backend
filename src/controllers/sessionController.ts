@@ -1,6 +1,7 @@
 // src/controllers/sessionController.ts
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { generateAudioFeedback } from '../services/openaiService';
 const prisma = new PrismaClient();
 
 export const getSessionMessages = async (req: Request, res: Response) => {
@@ -67,7 +68,17 @@ export const createSession = async (req: Request, res: Response) => {
 			},
 		});
 
-		res.status(201).json(session);
+		const audioBuffer = await generateAudioFeedback(promptAleatorio.text);
+		const audioBase64 = audioBuffer.toString('base64');
+
+		// 6. Retorna a sessão + conteúdo e áudio inicial
+		res.status(201).json({
+			sessionId: session.id,
+			promptText: promptAleatorio.text,
+			promptAudio: audioBase64
+		});
+
+		// res.status(201).json(session);
 	} catch (err) {
 		console.error('Erro ao criar sessão:', err);
 		res.status(500).json({ message: 'Erro ao criar sessão.' });
