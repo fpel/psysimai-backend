@@ -4,6 +4,6 @@ import { verifyToken } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-router.post('/tss', verifyToken, textToSpeech);
+router.post('/tts', verifyToken, textToSpeech);
 
 export default router;
