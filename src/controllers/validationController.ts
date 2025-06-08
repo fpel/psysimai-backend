@@ -95,7 +95,7 @@ export const validateResponseAI = async (req: Request, res: Response) => {
 		// 5. Constroi o prompt para a IA
 		const prompt = `\n\tResposta do terapeuta:\n\t"${therapistResponse}"\n\n\tComportamentos esperados:\n\t${expectedList}\n\n\t${criteriosAvaliacao}\n\n\t${feedbackInstrucao}`;
 
-		console.log('Prompt enviado para IA:', prompt);
+		// console.log('Prompt enviado para IA:', prompt);
 
 		const aiFeedback = await getChatCompletion(prompt);
 		const raw = aiFeedback.trim()
