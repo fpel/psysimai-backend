@@ -34,74 +34,47 @@ const prisma = new PrismaClient();
 // };
 
 
+// Função utilitária para montar prompt e buscar feedback da IA
+async function avaliarResposta({
+	resposta, sessionId, isAudio = false
+}: {
+	resposta: string;
+	sessionId: string;
+	isAudio?: boolean;
+}) {
+	// 1. Busca a sessão pra extrair o promptId
+	const session = await prisma.session.findUnique({
+		where: { id: sessionId },
+		select: { promptId: true }
+	});
+	if (!session) throw new Error('Sessão não encontrada para este sessionId.');
+	const promptId = session.promptId;
+
+	// 2. Busca os comportamentos esperados
+	const expected = await prisma.expectedResponse.findMany({ where: { promptId } });
+	if (expected.length === 0) throw new Error('Nenhuma resposta esperada encontrada para este prompt.');
+	const expectedList = expected.map((e, i) => `${i + 1}. ${e.text}`).join('\n');
+
+	// 3. Busca critérios e feedback da configuração
+	const config = await prisma.configuracao.findFirst();
+	const criteriosAvaliacao = config?.criteriosAvaliacao || `Critérios de avaliação:\n- Validar a experiência do paciente.\n- Explicar a lógica de como a TCC pode ser utilizada para abordar as preocupações.\n- Promover esperança quanto ao uso eficaz da TCC.\n- Estabelecer expectativas adequadas sobre a natureza e o impacto da TCC.`;
+	const feedbackInstrucao = config?.feedback || 'Forneça um feedback mais rigoroso e um percentual de adequação, só considerar a resposta adequada quando cumpriu todos os critérios acima.';
+
+	// 4. Constroi o prompt para a IA
+	const prompt = `\n\tResposta do terapeuta:\n\t"${resposta}"\n\n\tComportamentos esperados:\n\t${expectedList}\n\n\t${criteriosAvaliacao}\n\n\t${feedbackInstrucao}`;
+
+	// 5. Chama a IA
+	const aiFeedback = await getChatCompletion(prompt);
+	const raw = aiFeedback.trim().replace(/^```json\s*/, '').replace(/```$/, '');
+	const ai = JSON.parse(raw);
+	return { ai, prompt, expectedList };
+}
+
 export const validateResponseAI = async (req: Request, res: Response) => {
 	const { therapistResponse, sessionId } = req.body;
 
 	try {
-
-		// 1. Busca a sessão pra extrair o promptId
-		const session = await prisma.session.findUnique({
-			where: { id: sessionId },
-			select: { promptId: true }
-		});
-
-		if (!session) {
-			res.status(404).json({
-				error: 'Sessão não encontrada para este sessionId.'
-			});
-			return;
-		}
-		const promptId = session.promptId;
-
-		// 2. Busca os comportamentos esperados
-		const expected = await prisma.expectedResponse.findMany({
-			where: { promptId }
-		});
-
-		if (expected.length === 0) {
-			res.status(404).json({
-				error: 'Nenhuma resposta esperada encontrada para este prompt.'
-			});
-			return;
-		}
-
-		// 3. Monta lista numerada de expected texts
-		const expectedList = expected
-			.map((e, i) => `${i + 1}. ${e.text}`)
-			.join('\n');
-
-		// 4. Busca critérios e feedback da configuração
-		const configuracao = await prisma.configuracao.findFirst();
-		const criteriosAvaliacao = configuracao?.criteriosAvaliacao || `Critérios de avaliação:\n- Validar a experiência do paciente.\n- Explicar a lógica de como a TCC pode ser utilizada para abordar as preocupações.\n- Promover esperança quanto ao uso eficaz da TCC.\n- Estabelecer expectativas adequadas sobre a natureza e o impacto da TCC.`;
-		const feedbackInstrucao = configuracao?.feedback || 'Forneça um feedback mais rigoroso e um percentual de adequação, só considerar a resposta adequada quando cumpriu todos os critérios acima.';
-
-		// ESSE PROMPT FUNCIONA - TROQUEI PARA BUSCAR NA BASE DE DADOS
-		// const prompt = `
-		// 	Resposta do terapeuta:
-		// 	"${therapistResponse}"
-
-		// 	Comportamentos esperados:
-		// 	${expectedList}
-
-		// 	Critérios de avaliação:
-		// 	- Validar a experiência do paciente.
-		// 	- Explicar a lógica de como a TCC pode ser utilizada para abordar as preocupações.
-		// 	- Promover esperança quanto ao uso eficaz da TCC.
-		// 	- Estabelecer expectativas adequadas sobre a natureza e o impacto da TCC.
-
-		// 	Forneça um feedback mais rigoroso e um percentual de adequação, só considerar a resposta adequada quando cumpriu todos os critérios acima.`;
-
-
-		// 5. Constroi o prompt para a IA
-		const prompt = `\n\tResposta do terapeuta:\n\t"${therapistResponse}"\n\n\tComportamentos esperados:\n\t${expectedList}\n\n\t${criteriosAvaliacao}\n\n\t${feedbackInstrucao}`;
-
-		// console.log('Prompt enviado para IA:', prompt);
-
-		const aiFeedback = await getChatCompletion(prompt);
-		const raw = aiFeedback.trim()
-			.replace(/^```json\s*/, '')
-			.replace(/```$/, '')
-		const ai = JSON.parse(raw);
+		const { ai } = await avaliarResposta({ resposta: therapistResponse, sessionId });
 
 		//Grava o historico da mensagem
 		await prisma.message.create({
@@ -117,9 +90,9 @@ export const validateResponseAI = async (req: Request, res: Response) => {
 		});
 
 		res.status(200).json(ai);
-	} catch (error) {
+	} catch (error: any) {
 		console.error(error);
-		res.status(500).json({ error: 'Erro ao validar com IA.' });
+		res.status(500).json({ error: error.message || 'Erro ao validar com IA.' });
 	}
 };
 
@@ -134,36 +107,7 @@ export const validateAudioResponse = async (req: Request, res: Response) => {
 
 	try {
 		const therapistResponse = await transcribeAudio(file.path);
-
-		const session = await prisma.session.findUnique({
-			where: { id: sessionId },
-			select: { promptId: true },
-		});
-
-		if (!session) {
-			res.status(404).json({ error: 'Sessão não encontrada.' });
-			return;
-		}
-
-		const expected = await prisma.expectedResponse.findMany({
-			where: { promptId: session.promptId },
-		});
-
-		if (expected.length === 0) {
-			res.status(404).json({ error: 'Nenhuma resposta esperada para este prompt.' });
-			return;
-		}
-
-		const expectedList = expected.map((e, i) => `${i + 1}. ${e.text}`).join('\n');
-
-		const config = await prisma.configuracao.findFirst();
-		const criteriosAvaliacao = config?.criteriosAvaliacao || 'Critérios padrões.';
-		const feedbackInstrucao = config?.feedback || 'Forneça um feedback completo.';
-
-		const prompt = `\n\tResposta do terapeuta:\n\t"${therapistResponse}"\n\n\tComportamentos esperados:\n\t${expectedList}\n\n\t${criteriosAvaliacao}\n\n\t${feedbackInstrucao}`;
-
-		const aiResponse = await getChatCompletion(prompt);
-		const ai = JSON.parse(aiResponse);
+		const { ai } = await avaliarResposta({ resposta: therapistResponse, sessionId, isAudio: true });
 
 		await prisma.message.create({
 			data: {
@@ -179,7 +123,7 @@ export const validateAudioResponse = async (req: Request, res: Response) => {
 		});
 
 		const audioBuffer = await generateAudioFeedback(ai.feedback);
-		
+
 		await fs.unlink(file.path);
 
 		res.status(200).json({
@@ -190,9 +134,9 @@ export const validateAudioResponse = async (req: Request, res: Response) => {
 			audioFeedback: audioBuffer.toString('base64'),
 		});
 		return;
-	} catch (error) {
+	} catch (error: any) {
 		console.error('Erro ao validar áudio:', error);
-		res.status(500).json({ message: 'Erro ao processar áudio.' });
+		res.status(500).json({ message: error.message || 'Erro ao processar áudio.' });
 		return;
 	}
 };
