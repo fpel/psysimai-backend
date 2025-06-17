@@ -7,7 +7,8 @@ const openai = new OpenAI({
 });
 
 export async function getChatCompletion(prompt: string) {
-
+	console.log('[OpenAI] Iniciando getChatCompletion');
+	const start = Date.now();
 	try {
 		// 1) Loga o prompt para depuração
 		console.log('[OpenAI] Enviando para API:', JSON.stringify({
@@ -36,7 +37,8 @@ export async function getChatCompletion(prompt: string) {
 		if (!content) {
 			throw new Error('OpenAI retornou sem `message.content`.');
 		}
-
+		const duration = Date.now() - start;
+		console.log(`[OpenAI] getChatCompletion finalizado em ${duration}ms`);
 		return content;
 		// return response.choices[0].message.content;
 
@@ -48,11 +50,17 @@ export async function getChatCompletion(prompt: string) {
 }
 
 export async function transcribeAudio(filePath: string): Promise<string> {
+	console.log(`[OpenAI] Iniciando transcrição de áudio: ${filePath}`);
+	const start = Date.now();
+
 	const transcription = await openai.audio.transcriptions.create({
 		file: fs.createReadStream(filePath),
 		model: 'whisper-1',
 		language: 'pt',
 	});
+
+	const duration = Date.now() - start;
+	console.log(`[OpenAI] Transcrição finalizada em ${duration}ms`);
 
 	return transcription.text;
 }
