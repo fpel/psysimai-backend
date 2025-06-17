@@ -11,6 +11,7 @@ import configRoutes from './routes/configRoutes';
 import authRoutes from './routes/authRoutes';
 import configuracaoRoutes from './routes/configuracaoRoutes';
 import openaiRoutes from './routes/openaiRoutes';
+import http from 'http';
 
 console.log('Starting PsySimAI server...');
 dotenv.config();
@@ -31,7 +32,9 @@ app.use('/api/openai', verifyToken, openaiRoutes);
 
 if (process.env.NODE_ENV !== 'test') {
 	const PORT = process.env.PORT || 3000;
-	app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+	const server = http.createServer(app);
+	server.timeout = 10 * 60 * 1000; // 10 minutos
+	server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }
 
 export default app;
