@@ -101,3 +101,19 @@ psysimai/
 - [ ] Painel do administrador para editar prompts e respostas esperadas
 - [ ] Suporte a diferentes idiomas
 
+## Configuração de Limite de Upload no Nginx
+
+Se você utiliza Nginx como proxy reverso para o backend, é importante aumentar o limite de upload para aceitar arquivos de áudio grandes (ex: até 50MB). Adicione a seguinte linha no bloco http, server ou location do seu arquivo de configuração do Nginx (nginx.conf):
+
+```
+client_max_body_size 50M;
+```
+
+Após alterar, reinicie o serviço do Nginx:
+
+```
+sudo systemctl restart nginx
+```
+
+Isso evita o erro 413 (Request Entity Too Large) ao enviar áudios grandes para a API.
+
