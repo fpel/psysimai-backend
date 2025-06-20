@@ -10,22 +10,10 @@ async function main() {
     await prisma.prompt.deleteMany()
     await prisma.userConfig.deleteMany()
     await prisma.config.deleteMany()
-    await prisma.configuracao.deleteMany() // Adicione esta linha para limpar a nova tabela
     await prisma.user.deleteMany()
     await prisma.skillCategory.deleteMany()
     await prisma.difficultyLevel.deleteMany()
 
-    // Seed para a nova tabela Configuracao
-    await prisma.configuracao.create({
-        data: {
-            criteriosAvaliacao: `Critérios de avaliação:
-- Validar a experiência do paciente.
-- Explicar a lógica de como a TCC pode ser utilizada para abordar as preocupações.
-- Promover esperança quanto ao uso eficaz da TCC.
-- Estabelecer expectativas adequadas sobre a natureza e o impacto da TCC.`,
-            feedback: `Forneça um feedback mais rigoroso e um percentual de adequação, só considerar a resposta adequada quando cumpriu todos os critérios acima.`
-        }
-    })
 
     // Criação do usuário padrão
     const user = await prisma.user.upsert({
@@ -42,7 +30,6 @@ async function main() {
     // Criação de categorias e níveis
     const skill = await prisma.skillCategory.create({
         data: {
-            name: 'Esse nome nao precisa',
             description: 'Explicar a fundamentação do tratamento com terapia cognitivo-comportamental'
         }
     })
@@ -50,14 +37,12 @@ async function main() {
     const levelBasic = await prisma.difficultyLevel.create({
         data: {
             name: 'Iniciante',
-            description: 'Modo iniciante para o terapeuta',
             order: 1
         }
     })
     const levelIntermediate = await prisma.difficultyLevel.create({
         data: {
             name: 'Intermediário',
-            description: 'Modo intermediário para o terapeuta',
             order: 2
         }
     })
@@ -65,7 +50,6 @@ async function main() {
     const levelAdvanced = await prisma.difficultyLevel.create({
         data: {
             name: 'Avançado',
-            description: 'Modo avançado para o terapeuta',
             order: 3
         }
     })
@@ -73,7 +57,12 @@ async function main() {
     // Criação de configuração vinculada a skillCategory e difficultyLevel
     const config = await prisma.config.create({
         data: {
-            name: 'Exercício 1',
+            criteriosAvaliacao: `Critérios de avaliação:
+- Validar a experiência do paciente.
+- Explicar a lógica de como a TCC pode ser utilizada para abordar as preocupações.
+- Promover esperança quanto ao uso eficaz da TCC.
+- Estabelecer expectativas adequadas sobre a natureza e o impacto da TCC.`,
+            feedback: `Forneça um feedback mais rigoroso e um percentual de adequação, só considerar a resposta adequada quando cumpriu todos os critérios acima.`,
             skillCategoryId: skill.id,
             difficultyLevelId: levelBasic.id,
             createdAt: new Date()
@@ -82,7 +71,12 @@ async function main() {
 
     const configIntermediate = await prisma.config.create({
         data: {
-            name: 'Exercício 1',
+            criteriosAvaliacao: `Critérios de avaliação:
+- Validar a experiência do paciente.
+- Explicar a lógica de como a TCC pode ser utilizada para abordar as preocupações.
+- Promover esperança quanto ao uso eficaz da TCC.
+- Estabelecer expectativas adequadas sobre a natureza e o impacto da TCC.`,
+            feedback: `Forneça um feedback mais rigoroso e um percentual de adequação, só considerar a resposta adequada quando cumpriu todos os critérios acima.`,
             skillCategoryId: skill.id,
             difficultyLevelId: levelIntermediate.id,
             createdAt: new Date()
@@ -91,7 +85,12 @@ async function main() {
 
     const configAdvanced = await prisma.config.create({
         data: {
-            name: 'Exercício 1',
+            criteriosAvaliacao: `Critérios de avaliação:
+- Validar a experiência do paciente.
+- Explicar a lógica de como a TCC pode ser utilizada para abordar as preocupações.
+- Promover esperança quanto ao uso eficaz da TCC.
+- Estabelecer expectativas adequadas sobre a natureza e o impacto da TCC.`,
+            feedback: `Forneça um feedback mais rigoroso e um percentual de adequação, só considerar a resposta adequada quando cumpriu todos os critérios acima.`,
             skillCategoryId: skill.id,
             difficultyLevelId: levelAdvanced.id,
             createdAt: new Date()

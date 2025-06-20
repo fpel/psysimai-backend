@@ -30,7 +30,8 @@ model User {
 
 model Config {
   id        String    @id @default(uuid())
-  name      String
+  criteriosAvaliacao String?
+  feedback           String?
   prompts   Prompt[]
   skillCategory     SkillCategory      @relation(fields: [skillCategoryId], references: [id])
   skillCategoryId   String
@@ -61,7 +62,6 @@ model ExpectedResponse {
 
 model SkillCategory {
   id          String   @id @default(uuid())
-  name        String
   description String
   configs  Config[]
 }
@@ -69,7 +69,6 @@ model SkillCategory {
 model DifficultyLevel {
   id          String     @id @default(uuid())
   name        String
-  description String
   order       Int
   configs  Config[]
 }
@@ -97,13 +96,5 @@ model Message {
   isValid   Boolean?
   feedback  String?
   score     Int? @default(0)
-}
-
-model Configuracao {
-  id                Int    @id @default(autoincrement())
-  criteriosAvaliacao String
-  feedback           String
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
 }
 
