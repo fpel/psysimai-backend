@@ -9,13 +9,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model UserConfig {
+model Estimulo {
+  id                String             @id @default(uuid())
+  text              String
+  criteriosAvaliacao String?
+  feedback           String?
+  order             Int
+  skillCategory     SkillCategory      @relation(fields: [skillCategoryId], references: [id])
+  skillCategoryId   String
+  difficultyLevel   DifficultyLevel    @relation(fields: [difficultyLevelId], references: [id])
+  difficultyLevelId String
+  expectedResponses ExpectedResponse[]
+  sessions  		Session[] 
+  userEstimulos     UserEstimulo[]
+}
+
+model UserEstimulo {
   user     User    @relation(fields: [userId], references: [id])
   userId   String
-  config   Config  @relation(fields: [configId], references: [id])
-  configId String
+  estimulo   Estimulo  @relation(fields: [estimuloId], references: [id])
+  estimuloId String
   createdAt DateTime  @default(now())
-  @@id([userId, configId])
+  @@id([userId, estimuloId])
 }
 
 model User {
@@ -24,38 +39,13 @@ model User {
   email    String     @unique
   password String
   sessions Session[]
-  // relação N-N para Config
-  userConfigs UserConfig[]
-}
-
-model Config {
-  id        String    @id @default(uuid())
-  criteriosAvaliacao String?
-  feedback           String?
-  prompts   Prompt[]
-  skillCategory     SkillCategory      @relation(fields: [skillCategoryId], references: [id])
-  skillCategoryId   String
-  difficultyLevel   DifficultyLevel    @relation(fields: [difficultyLevelId], references: [id])
-  difficultyLevelId String
-  // relação N-N para User
-  userConfigs UserConfig[]
-  createdAt DateTime  @default(now())
-}
-
-model Prompt {
-  id                String             @id @default(uuid())
-  config            Config             @relation(fields: [configId], references: [id])
-  configId          String
-  text              String
-  order             Int
-  expectedResponses ExpectedResponse[]
-  sessions  		Session[] 
+  userEstimulos UserEstimulo[]
 }
 
 model ExpectedResponse {
   id       String  @id @default(uuid())
-  prompt   Prompt  @relation(fields: [promptId], references: [id])
-  promptId String
+  estimulo   Estimulo  @relation(fields: [estimuloId], references: [id])
+  estimuloId String
   text     String
   notes    String?
 }
@@ -63,22 +53,22 @@ model ExpectedResponse {
 model SkillCategory {
   id          String   @id @default(uuid())
   description String
-  configs  Config[]
+  estimulos  Estimulo[]
 }
 
 model DifficultyLevel {
   id          String     @id @default(uuid())
   name        String
   order       Int
-  configs  Config[]
+  estimulos  Estimulo[]
 }
 
 model Session {
   id                String          @id @default(uuid())
   user              User            @relation(fields: [userId], references: [id])
   userId            String
-  prompt            Prompt          @relation(fields: [promptId], references: [id])
-  promptId          String
+  estimulo            Estimulo          @relation(fields: [estimuloId], references: [id])
+  estimuloId          String
   status            String
   startedAt         DateTime        @default(now())
   endedAt           DateTime?

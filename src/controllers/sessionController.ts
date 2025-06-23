@@ -17,7 +17,6 @@ export const getSessionMessages = async (req: Request, res: Response) => {
 			where: { sessionId },
 			orderBy: { timestamp: 'asc' },
 		});
-
 		res.status(200).json(messages);
 	} catch (error) {
 		console.error('Erro ao buscar mensagens:', error);
@@ -27,32 +26,28 @@ export const getSessionMessages = async (req: Request, res: Response) => {
 };
 
 export const createSession = async (req: Request, res: Response) => {
-	const { configId } = req.body;
+	const { estimuloId } = req.body;
 	const userId = req.user.id;
 
-	if (!configId) {
-		res.status(400).json({ message: 'Campos obrigatórios ausentes' });
+	if (!estimuloId) {
+		res.status(400).json({ message: 'Campo estimuloId obrigatório ausente' });
 		return;
 	}
 
 	try {
-		const prompts = await prisma.prompt.findMany({
-			where: {
-				configId,
-			},
+		const estimulo = await prisma.estimulo.findUnique({
+			where: { id: estimuloId },
 		});
 
-		if (prompts.length === 0) {
-			res.status(404).json({ message: 'Nenhum prompt encontrado para os critérios informados.' });
+		if (!estimulo) {
+			res.status(404).json({ message: 'Estímulo não encontrado para o ID informado.' });
 			return;
 		}
-
-		const promptAleatorio = prompts[Math.floor(Math.random() * prompts.length)];
 
 		const session = await prisma.session.create({
 			data: {
 				userId,
-				promptId: promptAleatorio.id,
+				estimuloId: estimulo.id,
 				status: 'in_progress',
 				startedAt: new Date(),
 			},
@@ -61,24 +56,20 @@ export const createSession = async (req: Request, res: Response) => {
 		await prisma.message.create({
 			data: {
 				sessionId: session.id,
-				// promptId: promptAleatorio.id,
 				sender: 'ia',
-				content: promptAleatorio.text,
+				content: estimulo.text,
 				timestamp: new Date(),
 			},
 		});
 
-		// const audioBuffer = await generateAudioFeedback(promptAleatorio.text);
+		// const audioBuffer = await generateAudioFeedback(prompt.text);
 		// const audioBase64 = audioBuffer.toString('base64');
 
-		// 6. Retorna a sessão + conteúdo e áudio inicial
 		res.status(201).json({
 			sessionId: session.id,
-			// promptText: promptAleatorio.text,
+			// promptText: prompt.text,
 			// promptAudio: audioBase64
 		});
-
-		// res.status(201).json(session);
 	} catch (err) {
 		console.error('Erro ao criar sessão:', err);
 		res.status(500).json({ message: 'Erro ao criar sessão.' });
@@ -92,29 +83,23 @@ export const getSessionHistory = async (req: Request, res: Response) => {
 
 		const sessions = await prisma.session.findMany({
 			where: { userId },
-			orderBy: {
-				startedAt: 'desc',
-			},
+			orderBy: { startedAt: 'desc' },
 			include: {
-				prompt: {
+				estimulo: {
 					include: {
-						config: {
-							include: {
-								difficultyLevel: true,
-								skillCategory: true
-							},
-						}
-					}
+						difficultyLevel: true,
+						skillCategory: true,
+					},
 				},
-			}
+			},
 		});
 
 		const result = sessions.map(session => ({
 			id: session.id,
 			startedAt: session.startedAt,
 			status: session.status || 'in_progress',
-			level: session.prompt.config.difficultyLevel.name,
-			category: session.prompt.config.skillCategory.description,
+			level: session.estimulo.difficultyLevel.name,
+			text: session.estimulo.text,
 		}));
 
 		res.status(200).json(result);
@@ -147,7 +132,6 @@ export const updateSessionStatus = async (req: Request, res: Response) => {
 			where: { id: sessionId },
 			data: { status },
 		});
-
 		res.status(200).json(updatedSession);
 	} catch (error) {
 		console.error('Erro ao atualizar status da sessão:', error);
@@ -167,9 +151,7 @@ export const repeatSession = async (req: Request, res: Response) => {
 	try {
 		const originalSession = await prisma.session.findUnique({
 			where: { id: sessionId },
-			include: {
-				prompt: true,
-			}
+			include: { estimulo: true },
 		});
 
 		if (!originalSession) {
@@ -177,12 +159,12 @@ export const repeatSession = async (req: Request, res: Response) => {
 			return;
 		}
 
-		const promptId = originalSession.prompt.id;
+		const estimuloId = originalSession.estimulo.id;
 
 		const newSession = await prisma.session.create({
 			data: {
 				userId,
-				promptId,
+				estimuloId,
 				status: 'in_progress',
 				startedAt: new Date(),
 			},
@@ -192,7 +174,7 @@ export const repeatSession = async (req: Request, res: Response) => {
 			data: {
 				sessionId: newSession.id,
 				sender: 'ia',
-				content: originalSession.prompt.text,
+				content: originalSession.estimulo.text,
 				timestamp: new Date(),
 			},
 		});

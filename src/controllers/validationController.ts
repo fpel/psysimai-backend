@@ -42,23 +42,32 @@ async function avaliarResposta({
 	sessionId: string;
 	isAudio?: boolean;
 }) {
-	// 1. Busca a sessão pra extrair o promptId
+	// 1. Busca a sessão pra extrair o estimuloId e já traz o estimulo com categorias
 	const session = await prisma.session.findUnique({
 		where: { id: sessionId },
-		select: { promptId: true }
+		select: {
+			estimuloId: true,
+			estimulo: {
+				select: {
+					id: true,
+					criteriosAvaliacao: true,
+					feedback: true,
+				}
+			}
+		}
 	});
 	if (!session) throw new Error('Sessão não encontrada para este sessionId.');
-	const promptId = session.promptId;
+	const estimuloId = session.estimuloId;
+	const estimulo = session.estimulo;
 
 	// 2. Busca os comportamentos esperados
-	const expected = await prisma.expectedResponse.findMany({ where: { promptId } });
-	if (expected.length === 0) throw new Error('Nenhuma resposta esperada encontrada para este prompt.');
+	const expected = await prisma.expectedResponse.findMany({ where: { estimuloId } });
+	if (expected.length === 0) throw new Error('Nenhuma resposta esperada encontrada para este estímulo.');
 	const expectedList = expected.map((e, i) => `${i + 1}. ${e.text}`).join('\n');
 
-	// 3. Busca critérios e feedback da configuração
-	const config = await prisma.configuracao.findFirst();
-	const criteriosAvaliacao = config?.criteriosAvaliacao || `Critérios de avaliação:\n- Validar a experiência do paciente.\n- Explicar a lógica de como a TCC pode ser utilizada para abordar as preocupações.\n- Promover esperança quanto ao uso eficaz da TCC.\n- Estabelecer expectativas adequadas sobre a natureza e o impacto da TCC.`;
-	const feedbackInstrucao = config?.feedback || 'Forneça um feedback mais rigoroso e um percentual de adequação, só considerar a resposta adequada quando cumpriu todos os critérios acima.';
+	// 3. Busca critérios e feedback do estímulo
+	const criteriosAvaliacao = estimulo.criteriosAvaliacao || `Critérios de avaliação:\n- Validar a experiência do paciente.\n- Explicar a lógica de como a TCC pode ser utilizada para abordar as preocupações.\n- Promover esperança quanto ao uso eficaz da TCC.\n- Estabelecer expectativas adequadas sobre a natureza e o impacto da TCC.`;
+	const feedbackInstrucao = estimulo.feedback || 'Forneça um feedback mais rigoroso e um percentual de adequação, só considerar a resposta adequada quando cumpriu todos os critérios acima.';
 
 	// 4. Constroi o prompt para a IA
 	const prompt = `\n\tResposta do terapeuta:\n\t"${resposta}"\n\n\tComportamentos esperados:\n\t${expectedList}\n\n\t${criteriosAvaliacao}\n\n\t${feedbackInstrucao}`;

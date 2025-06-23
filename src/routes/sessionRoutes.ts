@@ -5,7 +5,7 @@ import {
 	getSessionMessages,
 	getSessionHistory,
 	updateSessionStatus,
-	repeatSession, // 👈 novo
+	repeatSession,
 } from '../controllers/sessionController';
 import { verifyToken } from '../middleware/authMiddleware';
 
