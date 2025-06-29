@@ -6,33 +6,6 @@ import fs from 'fs/promises';
 
 const prisma = new PrismaClient();
 
-//Essa funcao nao esta sendo usada
-// export const validateResponse = async (req: Request, res: Response) => {
-// 	const { promptId, therapistResponse } = req.body;
-
-// 	const expected = await prisma.expectedResponse.findMany({
-// 		where: { promptId },
-// 	});
-
-// 	if (!therapistResponse) {
-// 		res.status(400).json({
-// 			isValid: false,
-// 			feedback: 'Resposta vazia ou inválida.'
-// 		});
-// 		return;
-// 	}
-
-// 	const expectedTexts = expected.map(e => e.text.toLowerCase());
-// 	const match = expectedTexts.some(text => therapistResponse.toLowerCase().includes(text));
-
-// 	const feedback = match
-// 		? 'Resposta adequada. Muito bem!'
-// 		: 'A resposta não corresponde ao esperado. Tente novamente.';
-
-// 	res.status(200).json({ isValid: match, feedback });
-// 	return;
-// };
-
 
 // Função utilitária para montar prompt e buscar feedback da IA
 async function avaliarResposta({
@@ -147,6 +120,53 @@ export const validateAudioResponse = async (req: Request, res: Response) => {
 		console.error('Erro ao validar áudio:', error);
 		res.status(500).json({ message: error.message || 'Erro ao processar áudio.' });
 		return;
+	}
+};
+
+// Validação direta de estímulo customizado (sem sessionId)
+export const validateCustomStimulus = async (req: Request, res: Response) => {
+	// Suporte a multipart: converte campos string para objeto se necessário
+	let respostasEsperadas = req.body.respostasEsperadas;
+	if (typeof respostasEsperadas === 'string') {
+		try {
+			respostasEsperadas = JSON.parse(respostasEsperadas);
+		} catch {
+			respostasEsperadas = [];
+		}
+	}
+	const criteriosAvaliacao = req.body.criteriosAvaliacao;
+	const feedback = req.body.feedback;
+	let resposta = req.body.resposta;
+
+	// Se vier arquivo de áudio, transcreve e usa como resposta
+	const files = (req as any).files as Express.Multer.File[];
+	const file = files && files.length > 0 ? files[0] : undefined;
+	if (file) {
+		try {
+			resposta = await transcribeAudio(file.path);
+			await fs.unlink(file.path);
+		} catch (err) {
+			console.error('Erro ao transcrever áudio:', err);
+			res.status(500).json({ error: 'Erro ao transcrever áudio.' });
+			return;
+		}
+	}
+
+	try {
+		// Monta lista de comportamentos esperados
+		const expectedList = (respostasEsperadas || []).map((e: any, i: number) => `${i + 1}. ${e.text}`).join('\n');
+		const criterios = criteriosAvaliacao || 'Critérios de avaliação não informados.';
+		const feedbackInstrucao = feedback || 'Forneça um feedback rigoroso e um percentual de adequação.';
+		// Monta prompt
+		const prompt = `\n\tResposta do terapeuta:\n\t"${resposta}"\n\n\tComportamentos esperados:\n\t${expectedList}\n\n\t${criterios}\n\n\t${feedbackInstrucao}`;
+		// Chama a IA
+		const aiFeedback = await getChatCompletion(prompt);
+		const raw = aiFeedback.trim().replace(/^```json\s*/, '').replace(/```$/, '');
+		const ai = JSON.parse(raw);
+		res.status(200).json({ ...ai, resposta });
+	} catch (error: any) {
+		console.error('Erro ao validar estímulo customizado:', error);
+		res.status(500).json({ error: error.message || 'Erro ao validar estímulo customizado.' });
 	}
 };
 
