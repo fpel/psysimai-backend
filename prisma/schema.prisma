@@ -20,7 +20,12 @@ model Estimulo {
   difficultyLevel   DifficultyLevel    @relation(fields: [difficultyLevelId], references: [id])
   difficultyLevelId String
   expectedResponses ExpectedResponse[]
-  sessions  		Session[] 
+  sessions  	Session[] 
+  status            String   @default("active")
+  createdBy         String?
+  updatedAt         DateTime? @updatedAt
+  deletedBy         String?
+  deletedAt         DateTime?
   userEstimulos     UserEstimulo[]
 }
 
@@ -52,8 +57,13 @@ model ExpectedResponse {
 
 model SkillCategory {
   id          String   @id @default(uuid())
+  title       String?
   description String
-  estimulos  Estimulo[]
+  status      String   @default("active")
+  deletedBy   String?
+  deletedAt   DateTime?
+  updatedAt   DateTime? @updatedAt
+  estimulos   Estimulo[]
 }
 
 model DifficultyLevel {
@@ -67,8 +77,8 @@ model Session {
   id                String          @id @default(uuid())
   user              User            @relation(fields: [userId], references: [id])
   userId            String
-  estimulo            Estimulo          @relation(fields: [estimuloId], references: [id])
-  estimuloId          String
+  estimulo          Estimulo          @relation(fields: [estimuloId], references: [id])
+  estimuloId        String
   status            String
   startedAt         DateTime        @default(now())
   endedAt           DateTime?
