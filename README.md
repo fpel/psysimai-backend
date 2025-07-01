@@ -95,11 +95,6 @@ psysimai/
 - Progresso do terapeuta com desbloqueio de níveis
 - Painel de dashboard (em andamento)
 
-## Roadmap
-- [ ] Visualização de histórico de sessões
-- [ ] Exportação de resultados
-- [ ] Painel do administrador para editar prompts e respostas esperadas
-- [ ] Suporte a diferentes idiomas
 
 ## Configuração de Limite de Upload no Nginx
 
@@ -116,4 +111,70 @@ sudo systemctl restart nginx
 ```
 
 Isso evita o erro 413 (Request Entity Too Large) ao enviar áudios grandes para a API.
+
+## Diagrama de Fluxo das Rotas e Funções do Backend
+
+```text
+validationRoutes.ts
+├── POST /validate-response
+│   └── validationController.validateResponseAI
+│       └── avaliarResposta (busca sessão, estímulo, respostas esperadas, monta prompt)
+│           └── openaiService.getChatCompletion
+│       └── Salva mensagem (prisma)
+│       └── Retorna resposta da IA
+├── POST /audio-response
+│   └── validationController.validateAudioResponse
+│       └── openaiService.transcribeAudio
+│       └── avaliarResposta (busca sessão, estímulo, respostas esperadas, monta prompt)
+│           └── openaiService.getChatCompletion
+│       └── Salva mensagem (prisma)
+│       └── openaiService.generateAudioFeedback
+│       └── Retorna resposta da IA + áudio do feedback
+├── POST /validate-custom
+│   └── validationController.validateCustomStimulus
+│       └── (se multipart e houver áudio) openaiService.transcribeAudio
+│       └── openaiService.getChatCompletion
+│       └── Retorna resposta da IA + resposta transcrita/texto
+
+estimuloRoutes.ts
+├── GET /estimulos
+│   └── estimuloController.getAllEstimulos → Busca estímulos (prisma)
+├── GET /estimulos/:id
+│   └── estimuloController.getEstimuloById → Busca estímulo por ID (prisma)
+├── PUT /estimulos/:id
+│   └── estimuloController.updateEstimulo → Atualiza estímulo (prisma)
+├── GET /estimulos/usuario/:userId
+│   └── estimuloController.getEstimulosByUser → Busca estímulos do usuário (prisma)
+
+sessionRoutes.ts
+├── POST /sessions
+│   └── sessionController.createSession → Cria sessão (prisma)
+├── GET /sessions/:id
+│   └── sessionController.getSessionById → Busca sessão (prisma)
+├── GET /sessions/usuario/:userId
+│   └── sessionController.getSessionsByUser → Busca sessões do usuário (prisma)
+
+authRoutes.ts
+├── POST /login
+│   └── authController.login → Busca usuário (prisma), valida senha, gera JWT
+├── POST /register
+│   └── authController.register → Cria usuário (prisma)
+
+difficultyLevelRoutes.ts
+├── GET /difficulty-levels
+│   └── difficultyLevelController.getAllDifficultyLevels → Busca níveis (prisma)
+
+messageRoutes.ts
+├── GET /messages/session/:sessionId
+│   └── messageController.getMessagesBySession → Busca mensagens da sessão (prisma)
+
+openaiRoutes.ts
+├── POST /openai/tts
+│   └── openaiController.textToSpeech → openaiService.textToSpeech
+```
+
+> Todas as rotas protegidas usam o middleware de autenticação JWT.
+> Upload de arquivos usa o middleware de upload (multer).
+> Todas as integrações com IA estão em `services/openaiService.ts`.
+> Todas as operações de banco usam Prisma.
 
