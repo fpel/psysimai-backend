@@ -17,7 +17,7 @@ export async function getChatCompletion(prompt: string) {
 				{ role: "system", "content": "Você é um avaliador especializado em Terapia Cognitivo-Comportamental (TCC). Sua tarefa é avaliar se uma resposta de terapeuta cumpre todos os critérios técnicos esperados. Responda **exclusivamente** com JSON puro, sem formatação, sem blocos de código e sem explicações externas. Use estritamente o formato:\n\n{\"isValid\": boolean, \"score\": number, \"feedback\": \"texto breve, gentil e profissional\"}\n\nA avaliação deve seguir os critérios fornecidos pelo usuário. Só considere a resposta válida se **TODOS** os critérios forem integralmente atendidos. Respostas **metalinguísticas, de teste, ou que não se dirigem ao paciente** devem ser classificadas com **\"isValid\": false** e **\"score\": 0**. Seja técnico, imparcial e preciso." },
 				{ role: 'user', content: prompt },
 			],
-			temperature: 0, // deixar mais objetivo
+			temperature: 0.4, // deixar mais objetivo
 		}));
 
 		const response = await openai.chat.completions.create({
@@ -26,7 +26,7 @@ export async function getChatCompletion(prompt: string) {
 				{ role: "system", "content": "Você é um avaliador especializado em Terapia Cognitivo-Comportamental (TCC). Sua tarefa é avaliar se uma resposta de terapeuta cumpre todos os critérios técnicos esperados. Responda **exclusivamente** com JSON puro, sem formatação, sem blocos de código e sem explicações externas. Use estritamente o formato:\n\n{\"isValid\": boolean, \"score\": number, \"feedback\": \"texto breve, gentil e profissional\"}\n\nA avaliação deve seguir os critérios fornecidos pelo usuário. Só considere a resposta válida se **TODOS** os critérios forem integralmente atendidos. Respostas **metalinguísticas, de teste, ou que não se dirigem ao paciente** devem ser classificadas com **\"isValid\": false** e **\"score\": 0**. Seja técnico, imparcial e preciso." },
 				{ role: 'user', content: prompt },
 			],
-			temperature: 0, // deixar mais objetivo
+			temperature: 0.4, // deixar mais objetivo
 		});
 
 		// 2) Loga o objeto inteiro pra inspecionar se choices existe
