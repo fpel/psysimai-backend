@@ -13,14 +13,14 @@ model Estimulo {
   id                String             @id @default(uuid())
   text              String
   criteriosAvaliacao String?
-  feedback           String?
+  feedback          String?
   order             Int
   skillCategory     SkillCategory      @relation(fields: [skillCategoryId], references: [id])
   skillCategoryId   String
   difficultyLevel   DifficultyLevel    @relation(fields: [difficultyLevelId], references: [id])
   difficultyLevelId String
   expectedResponses ExpectedResponse[]
-  sessions  	Session[] 
+  sessions          Session[]
   status            String   @default("active")
   createdBy         String?
   updatedAt         DateTime? @updatedAt
@@ -30,34 +30,36 @@ model Estimulo {
 }
 
 model UserEstimulo {
-  user     User    @relation(fields: [userId], references: [id])
-  userId   String
-  estimulo   Estimulo  @relation(fields: [estimuloId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+  estimulo   Estimulo @relation(fields: [estimuloId], references: [id])
   estimuloId String
-  createdAt DateTime  @default(now())
+  createdAt  DateTime @default(now())
+
   @@id([userId, estimuloId])
 }
 
 model User {
-  id       String     @id @default(uuid())
-  name     String
-  email    String     @unique
-  password String
-  sessions Session[]
+  id           String         @id @default(uuid())
+  name         String
+  email        String         @unique
+  password     String
+  sessions     Session[]
   userEstimulos UserEstimulo[]
 }
 
 model ExpectedResponse {
-  id       String  @id @default(uuid())
-  estimulo   Estimulo  @relation(fields: [estimuloId], references: [id])
-  estimuloId String
-  text     String
-  notes    String?
+  id          String   @id @default(uuid())
+  estimulo    Estimulo @relation(fields: [estimuloId], references: [id])
+  estimuloId  String
+  text        String
+  notes       String?
 }
 
 model SkillCategory {
   id          String   @id @default(uuid())
   title       String?
+  abstract    String?
   description String
   status      String   @default("active")
   deletedBy   String?
@@ -67,34 +69,34 @@ model SkillCategory {
 }
 
 model DifficultyLevel {
-  id          String     @id @default(uuid())
+  id          String          @id @default(uuid())
   name        String
   order       Int
-  estimulos  Estimulo[]
+  estimulos   Estimulo[]
 }
 
 model Session {
-  id                String          @id @default(uuid())
-  user              User            @relation(fields: [userId], references: [id])
-  userId            String
-  estimulo          Estimulo          @relation(fields: [estimuloId], references: [id])
-  estimuloId        String
-  status            String
-  startedAt         DateTime        @default(now())
-  endedAt           DateTime?
-  messages          Message[]
+  id          String    @id @default(uuid())
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String
+  estimulo    Estimulo  @relation(fields: [estimuloId], references: [id])
+  estimuloId  String
+  status      String
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
+  messages    Message[]
 }
 
 model Message {
-  id        String   @id @default(uuid())
-  session   Session  @relation(fields: [sessionId], references: [id])
-  sessionId String
-  sender    String
-  content   String
+  id           String   @id @default(uuid())
+  session      Session  @relation(fields: [sessionId], references: [id])
+  sessionId    String
+  sender       String
+  content      String
   transcription String?
-  timestamp DateTime @default(now())
-  isValid   Boolean?
-  feedback  String?
-  score     Int? @default(0)
+  timestamp    DateTime @default(now())
+  isValid      Boolean?
+  feedback     String?
+  score        Int?     @default(0)
 }
 

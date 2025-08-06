@@ -9,6 +9,7 @@ export const getAllSkills = async (req: Request, res: Response) => {
       select: {
         id: true,
         title: true,
+        abstract: true,
         description: true,
       },
       orderBy: { title: 'asc' },
@@ -22,7 +23,7 @@ export const getAllSkills = async (req: Request, res: Response) => {
 
 export const createSkill = async (req: Request, res: Response) => {
   try {
-    const { title, description } = req.body;
+    const { title, description, abstract } = req.body;
     if (!title || typeof title !== 'string') {
       res.status(400).json({ message: 'Título é obrigatório.' });
       return;
@@ -30,12 +31,14 @@ export const createSkill = async (req: Request, res: Response) => {
     const skill = await prisma.skillCategory.create({
       data: {
         title,
+        abstract: abstract || '',
         description: description || '',
       },
       select: {
         id: true,
         title: true,
         description: true,
+        abstract: true,
       },
     });
     res.status(201).json(skill);
@@ -60,6 +63,7 @@ export const getSkillById = async (req: Request, res: Response) => {
         id: true,
         title: true,
         description: true,
+        abstract: true,
       },
     });
     if (!skill) {
@@ -78,7 +82,7 @@ export const getSkillById = async (req: Request, res: Response) => {
 export const updateSkill = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, description } = req.body;
+    const { title, description, abstract } = req.body;
     if (!id) {
       res.status(400).json({ message: 'ID é obrigatório.' });
       return;
@@ -93,6 +97,7 @@ export const updateSkill = async (req: Request, res: Response) => {
       data: {
         title,
         description: description || '',
+        abstract: abstract || '',
       },
     });
     if (updated.count === 0) {
@@ -106,6 +111,7 @@ export const updateSkill = async (req: Request, res: Response) => {
         id: true,
         title: true,
         description: true,
+        abstract: true,
       },
     });
     res.status(200).json(skill);
@@ -143,6 +149,7 @@ export const patchSkill = async (req: Request, res: Response) => {
         id: true,
         title: true,
         description: true,
+        abstract: true,
         status: true as any,
         deletedBy: true as any,
         deletedAt: true as any,

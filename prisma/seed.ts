@@ -38,6 +38,7 @@ async function main() {
     const skill = await prisma.skillCategory.create({
         data: {
 			title: 'Terapia Cognitivo-Comportamental',
+			abstract: 'Explicar a fundamentação do tratamento com terapia cognitivo-comportamental',
             description: 'Explicar a fundamentação do tratamento com terapia cognitivo-comportamental'
         }
     })
