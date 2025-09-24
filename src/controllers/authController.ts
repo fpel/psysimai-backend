@@ -23,13 +23,19 @@ export const login = async (req: Request, res: Response) => {
 			where: { email }
 		});
 
+
+		if (!user || user.ativo === false) {
+			res.status(403).json({ message: 'Usuário inativo. Entre em contato com o administrador.' });
+			return;
+		}
+
 		if (!user || user.password !== password) {
 			res.status(401).json({ message: 'Credenciais inválidas.' });
 			return;
 		}
 
-		const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET as string, {
-			expiresIn: '7d'
+		const token = jwt.sign({ userId: user.id, user: { id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin } }, process.env.JWT_SECRET as string, {
+			expiresIn: '1d'
 		});
 
 		res.status(200).json({ user, token });

@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 
 export const createEstimulo = async (req: Request, res: Response) => {
-	const { text, criteriosAvaliacao, feedback, difficultyLevelId, expectedResponses, skillId } = req.body;
+    const { text, criteriosAvaliacao, feedback, difficultyLevelId, expectedResponses, skillId, habilitado } = req.body;
 	const userId = req.user?.id || null; // req.user deve ser preenchido pelo middleware de autenticação
 	if (!text || !skillId) {
 		res.status(400).json({ message: 'Campos obrigatórios ausentes (text, skillId).' });
@@ -31,6 +31,7 @@ export const createEstimulo = async (req: Request, res: Response) => {
 				updatedAt: new Date(),
 				status: 'active',
 				order: nextOrder,
+				habilitado: typeof habilitado === 'boolean' ? habilitado : true,
 			},
 		});
 
@@ -95,7 +96,7 @@ export const deleteEstimulo = async (req: Request, res: Response) => {
 export const getAllEstimulos = async (req: Request, res: Response) => {
 	try {
 		const estimulos = await prisma.estimulo.findMany({
-			where: { status: 'active' },
+			where: { status: 'active', habilitado: true },
 			include: {
 				skillCategory: true,
 				difficultyLevel: true,
@@ -119,7 +120,7 @@ export const getEstimulosByUser = async (req: Request, res: Response) => {
 	}
 	try {
 		const userEstimulos = await prisma.userEstimulo.findMany({
-			where: { userId, estimulo: { status: 'active' } },
+			where: { userId, estimulo: { status: 'active', habilitado: true } },
 			include: {
 				estimulo: {
 					select: {
@@ -127,6 +128,7 @@ export const getEstimulosByUser = async (req: Request, res: Response) => {
 						text: true,
 						order: true,
 						difficultyLevel: true,
+						habilitado: true,
 					},
 				},
 			},
@@ -158,6 +160,7 @@ export const getEstimuloById = async (req: Request, res: Response) => {
 				feedback: true,
 				difficultyLevel: true,
 				expectedResponses: true,
+				habilitado: true,
 			},
 		});
 		if (!estimulo) {
@@ -175,7 +178,7 @@ export const getEstimuloById = async (req: Request, res: Response) => {
 
 export const updateEstimulo = async (req: Request, res: Response) => {
 	const { id } = req.params;
-	const { text, criteriosAvaliacao, feedback, difficultyLevelId, expectedResponses } = req.body;
+	const { text, criteriosAvaliacao, feedback, difficultyLevelId, expectedResponses, habilitado } = req.body;
 	if (!id) {
 		res.status(400).json({ message: 'id ausente.' });
 		return;
@@ -189,6 +192,7 @@ export const updateEstimulo = async (req: Request, res: Response) => {
 				criteriosAvaliacao,
 				feedback,
 				difficultyLevelId,
+				habilitado,
 			},
 		});
 

@@ -1,3 +1,4 @@
+
 // src/controllers/sessionController.ts
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
@@ -183,5 +184,21 @@ export const repeatSession = async (req: Request, res: Response) => {
 	} catch (error) {
 		console.error('Erro ao repetir sessão:', error);
 		res.status(500).json({ message: 'Erro ao repetir sessão.' });
+	}
+};
+
+// Retorna os IDs dos estímulos já concluídos com sucesso pelo usuário logado
+export const getCompletedEstimulos = async (req: Request, res: Response) => {
+	try {
+		const userId = req.user.id;
+		const sessions = await prisma.session.findMany({
+			where: { userId, status: 'success' },
+			select: { estimuloId: true },
+		});
+		const completedIds = sessions.map(s => s.estimuloId);
+		res.status(200).json(completedIds);
+	} catch (error) {
+		console.error('Erro ao buscar estímulos concluídos:', error);
+		res.status(500).json({ message: 'Erro ao buscar estímulos concluídos.' });
 	}
 };
