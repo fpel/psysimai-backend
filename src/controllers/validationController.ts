@@ -158,7 +158,7 @@ export const validateCustomStimulus = async (req: Request, res: Response) => {
 		const criterios = criteriosAvaliacao || 'Critérios de avaliação não informados.';
 		const feedbackInstrucao = feedback || 'Forneça um feedback rigoroso e um percentual de adequação.';
 		// Monta prompt
-		const prompt = `\n\tResposta do terapeuta:\n\t"${resposta}"\n\n\tComportamentos esperados:\n\t${expectedList}\n\n\t${criterios}\n\n\t${feedbackInstrucao}`;
+		const prompt = `\n\tResposta do terapeuta:\n\t"${resposta}"\n\n\tComportamentos esperados:\n\t${expectedList}\nCritérios de avaliação:\n\t${criterios}\n\n\t${feedbackInstrucao}`;
 		// Chama a IA
 		const aiFeedback = await getChatCompletion(prompt);
 		const raw = aiFeedback.trim().replace(/^```json\s*/, '').replace(/```$/, '');

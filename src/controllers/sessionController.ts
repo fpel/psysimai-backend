@@ -1,8 +1,7 @@
-
 // src/controllers/sessionController.ts
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { generateAudioFeedback } from '../services/openaiService';
+
 const prisma = new PrismaClient();
 
 export const getSessionMessages = async (req: Request, res: Response) => {
@@ -200,5 +199,35 @@ export const getCompletedEstimulos = async (req: Request, res: Response) => {
 	} catch (error) {
 		console.error('Erro ao buscar estímulos concluídos:', error);
 		res.status(500).json({ message: 'Erro ao buscar estímulos concluídos.' });
+	}
+};
+
+// Retorna os dados da sessão pelo ID
+export const getSessionById = async (req: Request, res: Response) => {
+	const { sessionId } = req.params;
+	if (!sessionId) {
+		res.status(400).json({ message: 'sessionId ausente' });
+		return;
+	}
+	try {
+		const session = await prisma.session.findUnique({
+			where: { id: sessionId },
+			select: {
+				id: true,
+				userId: true,
+				estimuloId: true,
+				status: true,
+				startedAt: true,
+				endedAt: true,
+			},
+		});
+		if (!session) {
+			res.status(404).json({ message: 'Sessão não encontrada.' });
+			return;
+		}
+		res.status(200).json(session);
+	} catch (error) {
+		console.error('Erro ao buscar sessão:', error);
+		res.status(500).json({ message: 'Erro ao buscar sessão.' });
 	}
 };

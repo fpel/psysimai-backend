@@ -27,7 +27,7 @@ cd psysimai
 
 ### 2. Suba o banco de dados com Docker
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 3. Configure o ambiente

@@ -62,7 +62,6 @@ model ExpectedResponse {
 model SkillCategory {
   id          String   @id @default(uuid())
   title       String?
-  abstract    String?
   description String
   status      String   @default("active")
   deletedBy   String?
