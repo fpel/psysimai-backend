@@ -44,9 +44,11 @@ async function avaliarResposta({
 
 	// 4. Constroi o prompt para a IA
 	const prompt = `\n\tResposta do terapeuta:\n\t"${resposta}"\n\n\tComportamentos esperados:\n\t${expectedList}\n\n\t${criteriosAvaliacao}\n\n\t${feedbackInstrucao}`;
+	console.log('Prompt para IA:', prompt);
 
 	// 5. Chama a IA
 	const aiFeedback = await getChatCompletion(prompt);
+	console.log('Feedback bruto da IA:', aiFeedback);
 	const raw = aiFeedback.trim().replace(/^```json\s*/, '').replace(/```$/, '');
 	const ai = JSON.parse(raw);
 	return { ai, prompt, expectedList };

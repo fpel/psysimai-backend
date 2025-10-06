@@ -37,9 +37,11 @@ async function main() {
     // Criação de categorias e níveis
     const skill = await prisma.skillCategory.create({
         data: {
-			title: 'Terapia Cognitivo-Comportamental',
-			abstract: 'Explicar a fundamentação do tratamento com terapia cognitivo-comportamental',
-            description: 'Explicar a fundamentação do tratamento com terapia cognitivo-comportamental'
+            title: 'Terapia Cognitivo-Comportamental',
+            description: 'Explicar a fundamentação do tratamento com terapia cognitivo-comportamental',
+            promptIntro: 'Você é um avaliador especializado em Terapia Cognitivo-Comportamental (TCC).\n\nSua tarefa é avaliar se uma resposta de terapeuta cumpre todos os critérios técnicos esperados.',
+            promptFormat: 'Responda exclusivamente com JSON puro, sem formatação, sem blocos de código e sem explicações externas. Use estritamente o formato: {"isValid": boolean, "score": number, "feedback": "texto breve, gentil e profissional"}',
+            promptTemperature: 7 // Exemplo: 7 (corresponde a 0.7 na API)
         }
     })
 

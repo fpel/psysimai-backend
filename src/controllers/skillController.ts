@@ -10,6 +10,9 @@ export const getAllSkills = async (req: Request, res: Response) => {
         id: true,
         title: true,
         description: true,
+        promptIntro: true,
+        promptFormat: true,
+        promptTemperature: true,
       },
       orderBy: { title: 'asc' },
     });
@@ -22,7 +25,7 @@ export const getAllSkills = async (req: Request, res: Response) => {
 
 export const createSkill = async (req: Request, res: Response) => {
   try {
-  const { title, description } = req.body;
+    const { title, description, promptIntro, promptFormat, promptTemperature } = req.body;
     if (!title || typeof title !== 'string') {
       res.status(400).json({ message: 'Título é obrigatório.' });
       return;
@@ -31,11 +34,17 @@ export const createSkill = async (req: Request, res: Response) => {
       data: {
         title,
         description: description || '',
+        promptIntro: promptIntro || null,
+        promptFormat: promptFormat || null,
+        promptTemperature: promptTemperature ?? null,
       },
       select: {
         id: true,
         title: true,
         description: true,
+        promptIntro: true,
+        promptFormat: true,
+        promptTemperature: true,
       },
     });
     res.status(201).json(skill);
@@ -60,6 +69,9 @@ export const getSkillById = async (req: Request, res: Response) => {
         id: true,
         title: true,
         description: true,
+        promptIntro: true,
+        promptFormat: true,
+        promptTemperature: true,
       },
     });
     if (!skill) {
@@ -78,7 +90,7 @@ export const getSkillById = async (req: Request, res: Response) => {
 export const updateSkill = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-  const { title, description } = req.body;
+    const { title, description, promptIntro, promptFormat, promptTemperature } = req.body;
     if (!id) {
       res.status(400).json({ message: 'ID é obrigatório.' });
       return;
@@ -93,6 +105,9 @@ export const updateSkill = async (req: Request, res: Response) => {
       data: {
         title,
         description: description || '',
+        promptIntro: promptIntro || null,
+        promptFormat: promptFormat || null,
+        promptTemperature: promptTemperature ?? null,
       },
     });
     if (updated.count === 0) {
@@ -106,6 +121,9 @@ export const updateSkill = async (req: Request, res: Response) => {
         id: true,
         title: true,
         description: true,
+        promptIntro: true,
+        promptFormat: true,
+        promptTemperature: true,
       },
     });
     res.status(200).json(skill);
@@ -143,6 +161,9 @@ export const patchSkill = async (req: Request, res: Response) => {
         id: true,
         title: true,
         description: true,
+        promptIntro: true,
+        promptFormat: true,
+        promptTemperature: true,
         status: true as any,
         deletedBy: true as any,
         deletedAt: true as any,

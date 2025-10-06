@@ -63,6 +63,9 @@ model SkillCategory {
   id          String   @id @default(uuid())
   title       String?
   description String
+  promptIntro String?   // Texto introdutorio para o prompt do ChatGPT
+  promptFormat String?  // Instrucaoo de formato de resposta (ex: JSON)
+  promptTemperature Int? // Temperature para o modelo (0-10, será dividido por 10 na API)
   status      String   @default("active")
   deletedBy   String?
   deletedAt   DateTime?
