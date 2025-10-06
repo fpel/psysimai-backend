@@ -161,6 +161,7 @@ export const getEstimuloById = async (req: Request, res: Response) => {
 				difficultyLevel: true,
 				expectedResponses: true,
 				habilitado: true,
+				skillCategoryId: true,
 			},
 		});
 		if (!estimulo) {

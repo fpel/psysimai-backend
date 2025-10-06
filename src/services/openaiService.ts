@@ -6,27 +6,34 @@ const openai = new OpenAI({
 	apiKey: process.env.OPENAI_API_KEY, // coloque sua chave no .env
 });
 
-export async function getChatCompletion(prompt: string) {
+export async function getChatCompletion(prompt: string, skillCategory?: any | null) {
 	// console.log('[OpenAI] Iniciando getChatCompletion');
 	const start = Date.now();
 	try {
+		// Monta o system prompt dinamicamente se skillCategory existir
+		let systemPrompt = "Você é um avaliador especializado em Terapia Cognitivo-Comportamental (TCC). Sua tarefa é avaliar se uma resposta de terapeuta cumpre todos os critérios técnicos esperados. Responda **exclusivamente** com JSON puro, sem formatação, sem blocos de código e sem explicações externas. Use estritamente o formato:\n\n{\"isValid\": boolean, \"score\": number, \"feedback\": \"texto breve, gentil e profissional\"}\n\nA avaliação deve seguir os critérios fornecidos pelo usuário. Só considere a resposta válida se **TODOS** os critérios forem integralmente atendidos. Respostas **metalinguísticas, de teste, ou que não se dirigem ao paciente** devem ser classificadas com **\"isValid\": false** e **\"score\": 0**. Seja técnico, imparcial e preciso.";
+		let temperature = 0.4;
+		if (skillCategory) {
+			if (skillCategory.promptIntro) systemPrompt = skillCategory.promptIntro + "\n\n" + (skillCategory.promptFormat || "");
+			if (typeof skillCategory.promptTemperature === 'number') temperature = skillCategory.promptTemperature / 10;
+		}
 		// 1) Loga o prompt para depuração
 		console.log('[OpenAI] Enviando para API:', JSON.stringify({
-			model: 'gpt-4o', // ou 'gpt-4-turbo', ou o modelo que preferir
+			model: 'gpt-4o',
 			messages: [
-				{ role: "system", "content": "Você é um avaliador especializado em Terapia Cognitivo-Comportamental (TCC). Sua tarefa é avaliar se uma resposta de terapeuta cumpre todos os critérios técnicos esperados. Responda **exclusivamente** com JSON puro, sem formatação, sem blocos de código e sem explicações externas. Use estritamente o formato:\n\n{\"isValid\": boolean, \"score\": number, \"feedback\": \"texto breve, gentil e profissional\"}\n\nA avaliação deve seguir os critérios fornecidos pelo usuário. Só considere a resposta válida se **TODOS** os critérios forem integralmente atendidos. Respostas **metalinguísticas, de teste, ou que não se dirigem ao paciente** devem ser classificadas com **\"isValid\": false** e **\"score\": 0**. Seja técnico, imparcial e preciso." },
+				{ role: "system", content: systemPrompt },
 				{ role: 'user', content: prompt },
 			],
-			temperature: 0.4, 
+			temperature,
 		}));
 
 		const response = await openai.chat.completions.create({
-			model: 'gpt-4o', // ou 'gpt-4-turbo', ou o modelo que preferir
+			model: 'gpt-4o',
 			messages: [
-				{ role: "system", "content": "Você é um avaliador especializado em Terapia Cognitivo-Comportamental (TCC). Sua tarefa é avaliar se uma resposta de terapeuta cumpre todos os critérios técnicos esperados. Responda **exclusivamente** com JSON puro, sem formatação, sem blocos de código e sem explicações externas. Use estritamente o formato:\n\n{\"isValid\": boolean, \"score\": number, \"feedback\": \"texto breve, gentil e profissional\"}\n\nA avaliação deve seguir os critérios fornecidos pelo usuário. Só considere a resposta válida se **TODOS** os critérios forem integralmente atendidos. Respostas **metalinguísticas, de teste, ou que não se dirigem ao paciente** devem ser classificadas com **\"isValid\": false** e **\"score\": 0**. Seja técnico, imparcial e preciso." },
+				{ role: "system", content: systemPrompt },
 				{ role: 'user', content: prompt },
 			],
-			temperature: 0.4, 
+			temperature,
 		});
 
 		// 2) Loga o objeto inteiro pra inspecionar se choices existe

@@ -16,19 +16,26 @@ async function avaliarResposta({
 	isAudio?: boolean;
 }) {
 	// 1. Busca a sessão pra extrair o estimuloId e já traz o estimulo com categorias
-	const session = await prisma.session.findUnique({
-		where: { id: sessionId },
-		select: {
-			estimuloId: true,
-			estimulo: {
-				select: {
-					id: true,
-					criteriosAvaliacao: true,
-					feedback: true,
+		const session = await prisma.session.findUnique({
+			where: { id: sessionId },
+			select: {
+				estimuloId: true,
+				estimulo: {
+					select: {
+						id: true,
+						criteriosAvaliacao: true,
+						feedback: true,
+						skillCategory: {
+							select: {
+								promptIntro: true,
+								promptFormat: true,
+								promptTemperature: true,
+							}
+						}
+					}
 				}
 			}
-		}
-	});
+		});
 	if (!session) throw new Error('Sessão não encontrada para este sessionId.');
 	const estimuloId = session.estimuloId;
 	const estimulo = session.estimulo;
@@ -47,7 +54,7 @@ async function avaliarResposta({
 	console.log('Prompt para IA:', prompt);
 
 	// 5. Chama a IA
-	const aiFeedback = await getChatCompletion(prompt);
+	const aiFeedback = await getChatCompletion(prompt, estimulo.skillCategory);
 	console.log('Feedback bruto da IA:', aiFeedback);
 	const raw = aiFeedback.trim().replace(/^```json\s*/, '').replace(/```$/, '');
 	const ai = JSON.parse(raw);
@@ -139,6 +146,7 @@ export const validateCustomStimulus = async (req: Request, res: Response) => {
 	const criteriosAvaliacao = req.body.criteriosAvaliacao;
 	const feedback = req.body.feedback;
 	let resposta = req.body.resposta;
+	const skillCategoryId = req.body.skillCategoryId || req.body.skillcategoryid || req.body.skillCategoryID;
 
 	// Se vier arquivo de áudio, transcreve e usa como resposta
 	const files = (req as any).files as Express.Multer.File[];
@@ -154,6 +162,23 @@ export const validateCustomStimulus = async (req: Request, res: Response) => {
 		}
 	}
 
+	let skillCategory = null;
+	if (skillCategoryId) {
+		try {
+			skillCategory = await prisma.skillCategory.findUnique({
+				where: { id: skillCategoryId },
+				select: {
+					promptIntro: true,
+					promptFormat: true,
+					promptTemperature: true,
+				}
+			});
+		} catch (err) {
+			// Se não encontrar, segue sem skillCategory
+			skillCategory = null;
+		}
+	}
+
 	try {
 		// Monta lista de comportamentos esperados
 		const expectedList = (respostasEsperadas || []).map((e: any, i: number) => `${i + 1}. ${e.text}`).join('\n');
@@ -162,7 +187,7 @@ export const validateCustomStimulus = async (req: Request, res: Response) => {
 		// Monta prompt
 		const prompt = `\n\tResposta do terapeuta:\n\t"${resposta}"\n\n\tComportamentos esperados:\n\t${expectedList}\nCritérios de avaliação:\n\t${criterios}\n\n\t${feedbackInstrucao}`;
 		// Chama a IA
-		const aiFeedback = await getChatCompletion(prompt);
+		const aiFeedback = await getChatCompletion(prompt, skillCategory);
 		const raw = aiFeedback.trim().replace(/^```json\s*/, '').replace(/```$/, '');
 		const ai = JSON.parse(raw);
 		res.status(200).json({ ...ai, resposta });
