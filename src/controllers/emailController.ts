@@ -6,8 +6,8 @@ const loginCodes: Record<string, string> = {};
 
 export const sendConfirmationEmail = async (req: Request, res: Response) => {
   const { to, subject, text, html, code } = req.body;
-  if (!to || !subject || (!text && !html) || !code) {
-    res.status(400).json({ message: 'Campos obrigatórios: to, subject, text ou html, code.' });
+  if (!to || !subject || (!text && !html) ) {
+    res.status(400).json({ message: 'Campos obrigatórios: to, subject, text ou html.' });
     return;
   }
   try {
