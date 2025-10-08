@@ -12,6 +12,7 @@ import openaiRoutes from './routes/openaiRoutes';
 import estimuloRoutes from './routes/estimuloRoutes';
 import difficultyLevelRoutes from './routes/difficultyLevelRoutes';
 import skillRoutes from './routes/skillRoutes';
+import emailRoutes from './routes/emailRoutes';
 import http from 'http';
 
 console.log('Starting PsySimAI server...');
@@ -30,6 +31,7 @@ app.use('/api/openai', verifyToken, openaiRoutes);
 app.use('/api/estimulos', verifyToken, estimuloRoutes);
 app.use('/api/difficulty-levels', verifyToken, difficultyLevelRoutes);
 app.use('/api/skills', verifyToken, skillRoutes);
+app.use('/api/email', emailRoutes);
 
 
 if (process.env.NODE_ENV !== 'test') {
