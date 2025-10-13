@@ -44,7 +44,6 @@ model User {
   id           String         @id @default(uuid())
   name         String
   email        String         @unique
-  password     String
   isAdmin      Boolean        @default(false)
   ativo        Boolean        @default(true)
   sessions     Session[]

@@ -65,7 +65,6 @@ export const registerUser = async (req: Request, res: Response) => {
 			data: {
 				name,
 				email,
-				password: '', // valor padrão
 				isAdmin: false, // valor padrão
 				ativo: true // valor padrão
 			}
