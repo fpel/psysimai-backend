@@ -280,6 +280,11 @@ export const getSessionById = async (req: Request, res: Response) => {
 				endedAt: true,
 				evaluation: true,
 				feedbackTags: true,
+				estimulo: {
+					select: {
+						skillCategoryId: true,
+					},
+				},
 			},
 		});
 		if (!session) {
