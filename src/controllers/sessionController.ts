@@ -4,6 +4,22 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+const formatTags = (tags: unknown): string | null => {
+	if (Array.isArray(tags)) {
+		const sanitized = tags
+			.map(tag => (typeof tag === 'string' ? tag.trim() : ''))
+			.filter(tag => tag.length > 0);
+		return sanitized.length > 0 ? sanitized.join(', ') : null;
+	}
+
+	if (typeof tags === 'string') {
+		const trimmed = tags.trim();
+		return trimmed.length > 0 ? trimmed : null;
+	}
+
+	return null;
+};
+
 export const getSessionMessages = async (req: Request, res: Response) => {
 	const { sessionId } = req.params;
 
@@ -139,6 +155,49 @@ export const updateSessionStatus = async (req: Request, res: Response) => {
 	}
 };
 
+export const submitSessionEvaluation = async (req: Request, res: Response) => {
+	const { sessionId } = req.params;
+	const { evaluation, tags } = req.body as { evaluation?: unknown; tags?: unknown };
+	const userId = req.user.id;
+
+	if (!sessionId) {
+		res.status(400).json({ message: 'sessionId ausente.' });
+		return;
+	}
+
+	if (evaluation === undefined || evaluation === null || evaluation === '') {
+		res.status(400).json({ message: 'Campo evaluation é obrigatório.' });
+		return;
+	}
+
+	try {
+		const session = await prisma.session.findUnique({
+			where: { id: sessionId },
+			select: { id: true, userId: true },
+		});
+
+		if (!session || session.userId !== userId) {
+			res.status(404).json({ message: 'Sessão não encontrada.' });
+			return;
+		}
+
+		const tagsText = formatTags(tags);
+
+		await prisma.session.update({
+			where: { id: sessionId },
+			data: {
+				evaluation: String(evaluation),
+				feedbackTags: tagsText,
+			},
+		});
+
+		res.status(200).json({ message: 'Feedback registrado com sucesso.' });
+	} catch (error) {
+		console.error('Erro ao registrar avaliação da sessão:', error);
+		res.status(500).json({ message: 'Erro ao registrar avaliação da sessão.' });
+	}
+};
+
 export const repeatSession = async (req: Request, res: Response) => {
 	const { sessionId } = req.params;
 	const userId = req.user.id;
@@ -219,6 +278,8 @@ export const getSessionById = async (req: Request, res: Response) => {
 				status: true,
 				startedAt: true,
 				endedAt: true,
+				evaluation: true,
+				feedbackTags: true,
 			},
 		});
 		if (!session) {

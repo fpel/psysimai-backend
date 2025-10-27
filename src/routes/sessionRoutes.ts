@@ -7,6 +7,7 @@ import {
 	updateSessionStatus,
 	repeatSession,
 	getCompletedEstimulos,
+	submitSessionEvaluation,
 	getSessionById,
 } from '../controllers/sessionController';
 import { verifyToken } from '../middleware/authMiddleware';
@@ -16,6 +17,7 @@ const router = express.Router();
 
 router.post('/', verifyToken, createSession);
 router.post('/:sessionId/repeat', verifyToken, repeatSession);
+router.post('/:sessionId/avaliacao', verifyToken, submitSessionEvaluation);
 router.get('/:sessionId/messages', getSessionMessages);
 router.get('/:sessionId', getSessionById);
 router.get('/', verifyToken, getSessionHistory);

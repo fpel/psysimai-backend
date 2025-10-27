@@ -86,6 +86,8 @@ model Session {
   estimulo    Estimulo  @relation(fields: [estimuloId], references: [id])
   estimuloId  String
   status      String
+  evaluation  String?
+  feedbackTags String?
   startedAt   DateTime  @default(now())
   endedAt     DateTime?
   messages    Message[]
@@ -103,4 +105,3 @@ model Message {
   feedback     String?
   score        Int?     @default(0)
 }
-

@@ -12,16 +12,13 @@ async function main() {
     await prisma.user.deleteMany()
     await prisma.skillCategory.deleteMany()
     await prisma.difficultyLevel.deleteMany()
-
-
     // Criação do usuário padrão
     const user = await prisma.user.upsert({
-        where: { email: 'terapeuta@psysimai.com' },
+        where: { email: 'felipe.pellegrini@gmail.com' },
         update: {},
         create: {
-            name: 'Terapeuta Padrão',
-            email: 'terapeuta@psysimai.com',
-            password: 'senha123'
+            name: 'Felipe Pellegrini',
+            email: 'felipe.pellegrini@gmail.com',
         }
     })
 
