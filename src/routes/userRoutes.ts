@@ -7,9 +7,8 @@ const router = express.Router();
 
 console.log('User routes initialized');
 
-router.post('/register', verifyToken, registerUser);
-// Nova rota para listar usuários ativos ordenados por nome (apenas admins)
+router.post('/register', registerUser);
+// Rota para listar todos os usuários ordenados por nome (apenas admins)
 router.get('/active', verifyToken, requireAdmin, listActiveUsers);
 
 export default router;
-

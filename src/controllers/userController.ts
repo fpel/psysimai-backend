@@ -41,7 +41,6 @@ export const registerUser = async (req: Request, res: Response) => {
 export const listActiveUsers = async (req: Request, res: Response) => {
 	try {
 		const users = await prisma.user.findMany({
-			where: { ativo: true },
 			orderBy: { name: 'asc' },
 			select: {
 				id: true,
@@ -54,9 +53,8 @@ export const listActiveUsers = async (req: Request, res: Response) => {
 		res.status(200).json(users);
 		return;
 	} catch (err) {
-		console.error('Erro ao listar usuários ativos:', err);
-		res.status(500).json({ message: 'Erro ao listar usuários ativos.' });
+		console.error('Erro ao listar usuários:', err);
+		res.status(500).json({ message: 'Erro ao listar usuários.' });
 		return;
 	}
 };
-

@@ -24,7 +24,6 @@ export const login = async (req: Request, res: Response) => {
 			where: { email }
 		});
 
-
 		if (!user || user.ativo === false) {
 			res.status(403).json({ message: 'Usuário inativo. Entre em contato com o administrador.' });
 			return;
@@ -49,31 +48,4 @@ export const login = async (req: Request, res: Response) => {
 	}
 };
 
-export const registerUser = async (req: Request, res: Response) => {
-	const { name, email } = req.body;
-	if (!name || !email) {
-		res.status(400).json({ message: 'Nome e email são obrigatórios.' });
-		return;
-	}
-	try {
-		const existing = await prisma.user.findUnique({ where: { email } });
-		if (existing) {
-			res.status(409).json({ message: 'Email já cadastrado.' });
-			return;
-		}
-		const user = await prisma.user.create({
-			data: {
-				name,
-				email,
-				isAdmin: false, // valor padrão
-				ativo: true // valor padrão
-			}
-		});
-		res.status(201).json({ user });
-		return;
-	} catch (err) {
-		console.error('Erro ao cadastrar usuário:', err);
-		res.status(500).json({ message: 'Erro ao cadastrar usuário.' });
-		return;
-	}
-};
+
