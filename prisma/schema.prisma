@@ -44,6 +44,10 @@ model User {
   id           String         @id @default(uuid())
   name         String
   email        String         @unique
+  cpf          String?
+  cidade       String?
+  estado       String?        @db.Char(2)
+  telefone     String?
   isAdmin      Boolean        @default(false)
   ativo        Boolean        @default(true)
   sessions     Session[]
