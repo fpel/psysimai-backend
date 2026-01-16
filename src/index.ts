@@ -13,6 +13,7 @@ import difficultyLevelRoutes from './routes/difficultyLevelRoutes';
 import skillRoutes from './routes/skillRoutes';
 import emailRoutes from './routes/emailRoutes';
 import userRoutes from './routes/userRoutes';
+import feedbackRoutes from './routes/feedbackRoutes';
 import http from 'http';
 
 console.log('Starting Sayra server...');
@@ -32,6 +33,7 @@ app.use('/api/difficulty-levels', verifyToken, difficultyLevelRoutes);
 app.use('/api/skills', verifyToken, skillRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/email', emailRoutes);
+app.use('/api/feedbacks', verifyToken, feedbackRoutes);
 
 
 if (process.env.NODE_ENV !== 'test') {

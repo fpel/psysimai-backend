@@ -52,6 +52,7 @@ model User {
   ativo        Boolean        @default(true)
   sessions     Session[]
   userEstimulos UserEstimulo[]
+  feedbacks    Feedback[]
 }
 
 model ExpectedResponse {
@@ -108,4 +109,14 @@ model Message {
   isValid      Boolean?
   feedback     String?
   score        Int?     @default(0)
+}
+
+model Feedback {
+  id          String   @id @default(uuid())
+  rating      Int
+  description String
+  anonymous   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  user        User?    @relation(fields: [userId], references: [id])
+  userId      String?
 }
