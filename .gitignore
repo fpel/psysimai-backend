@@ -3,3 +3,4 @@ build/
 .env
 .env_production
 .env.tests
+.DS_Store
